@@ -117,3 +117,15 @@ No claim about subjective experience will be made from any outcome.
 ## Deviations
 
 *(none yet)*
+
+**Added after the analysis (2026-09-23). The text above is unchanged since registration.**
+
+1. **Execution.** Training, the evaluation battery and the decision rules ran as registered. The commit message of the registration commit was corrected once, before any training; the content was not.
+2. **Tooling fixes that do not change numbers.**
+   - `run_v02` did not write `meta.json`. It was written by hand for Study 2 and Study 2b (event timing step 32, as printed in each report), and the code now writes it.
+   - The report header now names the right pre-registration and shows M1.
+   - The sensitivity table gained an "ignoring the gate" column.
+3. **Exploratory additions, labelled as such everywhere.** All were added after results were known:
+   - the Study 2b strategy analysis;
+   - the reafference check;
+   - for Study 1b, a comparison of deterministic and stochastic policies on the foraging world (`results/study1b/exploratory.md`).
