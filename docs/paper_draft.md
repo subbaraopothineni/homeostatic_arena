@@ -1,4 +1,4 @@
-# DRAFT: Which behavioural markers of sentience and self-awareness can a simple mechanism fake? Two controlled studies with homeostatic agents
+# DRAFT: Which behavioural markers of sentience and self-awareness can a simple mechanism fake? Controlled and pre-registered studies with homeostatic agents
 
 *Working draft generated alongside the code. Author list, affiliations,
 funding and acknowledgements to be completed by the authors. All numbers are
@@ -32,18 +32,34 @@ The test was valid:
 - random networks did not;
 - a position shortcut failed the dissociation trials.
 
+A post-hoc sensitivity analysis showed that it detects an agent anticipating
+just 2% of a self-caused change.
+
 However, none of five trained agents passed any pre-registered hypothesis.
 Their forward models did not predict the lamp changes at all, whatever the
-cause, and self-caused changes were rare in their experience. Tests
-pre-registered as vulnerable were indeed passed by trivial controls. Body
-versus world was separated as well by a no-change predictor as by the agent,
-and "who caused it" was decodable at ceiling from untrained networks and raw
-inputs.
+cause (less than about 1% anticipation). The agents had learned to wait for
+others to switch the lamp rather than act themselves.
+
+**Study 2b (pre-registered)** repeated the test in a world where, by a
+scripted design check, the agent's own action was necessary. The learning
+agents mostly failed to discover the action (the manipulation check failed),
+and again no hypothesis was supported.
+
+**Study 1b (pre-registered)** gave learning agents the Study 1 markers. They
+converged to walking away from the charger and waiting at a wall until they
+starved, so they passed no marker that the reflexes failed.
+
+Across studies, the tests pre-registered as vulnerable were passed by trivial
+controls:
+- body versus world, by a no-change predictor;
+- "who caused it" decoded at ceiling, from untrained networks and raw inputs.
 
 We conclude that behavioural and decoding markers of sentience and
-self-awareness must be benchmarked against minimal mechanisms. Prediction-based
-self/other tests can be made robust to such mechanisms, but a generic learning
-agent need not acquire what they measure.
+self-awareness must be benchmarked against minimal mechanisms. A
+prediction-based self/other test can be made valid and sensitive. And in our
+hands, generic homeostatic learning agents were the limiting factor: they did
+not acquire, or even gather the experience for, the capacity the test
+measures.
 
 ## 1. Introduction (outline)
 
@@ -162,6 +178,34 @@ to be passed by trivial controls. **Exploratory probes** decode the cause
 and the event type from the GRU state, and are compared with a raw-input
 baseline.
 
+### 2.4 Study 2b: necessary agency (pre-registered, `docs/preregistration_v0.2b.md`, Part A)
+
+**Design check first.** Scripted robots with privileged knowledge compared a
+WAITER (waits for the lamp to go off) with a SWITCHER (switches it off
+itself), 100 episodes each (`experiments/necessity_check.py`).
+- In the Study 2 world, switching gave no survival benefit: −0.04 [−0.09, +0.01].
+- World `agency_b` changes four settings:
+  - the other robot's pad visits: p 0.5 → 0.05;
+  - spontaneous toggles: 1/20 s → 1/120 s;
+  - start energy: 0.2–0.6;
+  - the lamp is always on at start.
+
+  There, switching gave +0.25 [+0.17, +0.34].
+
+**Everything else was identical to Study 2:** agents, seeds, training budget,
+test battery and pass rules. A manipulation check (M1) required the agents to
+toggle the lamp themselves at least once per free-running episode.
+
+### 2.5 Study 1b: a learning agent on the Study 1 markers (pre-registered, Part B)
+
+- **Agent:** the FULL architecture with the 11-channel Study 1 observation.
+- **Training world:** each episode is the foraging world or the trade-off world (start energy U(0.05, 1)).
+- **Training:** 3 × 10⁶ steps, five seeds.
+- **Evaluation:** the unchanged Study 1 marker battery (30 and 100 seeds), using the deterministic policy.
+- **Decision rules:**
+  - Q1: the trade-off score > 0 in ≥ 4/5 seeds;
+  - Q3: sensitization below the memoryless agents' CI floor, and the non-harmful variant < 0, in ≥ 4/5 seeds.
+
 ## 3. Results
 
 ### 3.1 Study 1 [`results/summary.csv`, `results/seeds100/summary.csv`]
@@ -216,6 +260,44 @@ provides little pressure to model them.
 - **Absolute accuracy:** prediction error stayed above the no-change error (ratio 1.47–3.11).
 - **Reading:** the agents' distal predictions depend specifically on self-motion signals, without being accurate. This is hypothesis-generating only (`results/v02/exploratory.md`).
 
+### 3.3 Sensitivity of the agency test (post-hoc) [`results/v02/sensitivity.md`]
+
+We blended each agent's heat predictions with a fraction *w* of the
+comparator's and re-ran the identical battery.
+
+| Blend weight *w* | H1 runs passing | H3a runs passing | H2 runs passing |
+|---|---|---|---|
+| 0.02 | 4/5 | 4/5 | 1/5 |
+| 0.10 and more | 4/5 | 4/5 | 4/5 |
+
+The real agents' H1 CIs all lay below +0.016, so they anticipated less than
+about 1% of self-caused changes. The Study 2 null is therefore evidence of
+absence at this resolution.
+
+### 3.4 Study 2b [`results/v02b/report.md`, `results/v02b/exploratory.md`]
+
+- **Hypotheses:** H1–H3 were supported in 0/5 FULL runs each. V1–V3 passed.
+- **Competence gate:** all five FULL runs failed it (prediction error 0.99–1.35 × no-change).
+- **Survival:** 0, 0, 55, 50 and 0% of held-out episodes.
+- **M1 failed:** self-caused toggles per episode were 0.00, 0.04, 0.22, 0.90 and 0.04.
+- **Learned behaviour:**
+  - Three agents never learned to charge and died in all 20 strategy episodes.
+  - Two agents charged only with the lamp off (95–96%); only one regularly used the switch.
+- **Sensitivity:** ignoring the gate, the test detected a 2% blend in 5/5 runs, and the agents' H1 CIs lay below +0.033.
+- **Exploratory:** the Study 2 self-motion hint did not replicate consistently.
+
+### 3.5 Study 1b [`results/study1b/report.md`, `results/study1b/exploratory.md`]
+
+- **Q1: not separated.** The trade-off score was 0 in 5/5 seeds; the learners never crossed the heat wall and never reached the charger in the trade-off world.
+- **Q3: not estimable.** The learners were almost never harmed (harm in 7–10% of episodes; no episode with encounters before and after harm).
+- **Q2:** anticipation rates were 0.00–0.60, from 2–5 encounters.
+- **Survival:** 0%; the learners never reached the charger.
+
+**Why.** Trajectories show the learners walking away from the charger to the
+far wall and waiting there until they starved (lifetime 74–81 s of 90).
+Their exploration noise had shrunk to about 0.1, and the stochastic training
+policy behaved the same (exploratory).
+
 ## 4. Additional methodological findings
 
 ### 4.1 Test worlds must be verified, not assumed
@@ -226,7 +308,14 @@ The trade-off world, as first specified, did not pose a trade-off:
 
 We therefore changed the wall (58 °C/σ 0.35 m → 60 °C/σ 0.5 m) and the lowest start energy (0.15 → 0.08). We verified both analytically and by scripted runs in the physics engine (`results/design_check.txt`).
 
-### 4.2 Control agents must be competent
+### 4.2 Worlds must make the tested capacity useful
+
+In Study 2 the agents' failure to use the switch was not a quirk of learning.
+A scripted design check showed that switching was simply not worth it in that
+world (−0.04). A test of self-caused prediction presupposes that acting on the
+world pays. That condition can and should be checked before training.
+
+### 4.3 Control agents must be competent
 
 As first specified, the withdrawal reflex reversed its commanded heading on
 every trigger. It oscillated inside heat sources until death: all 28 of its
@@ -259,19 +348,25 @@ Its dissociation logic (freezing self-motion versus other-agent signals) adds
 causal, not merely correlational, evidence about which signals a prediction
 depends on.
 
-**A generic learning agent did not acquire the measured mechanism.** Survival
-training plus a generic next-observation loss produced agents that predicted
-dense, frequent changes but not rare, discrete consequences of their own
-actions. A negative result under pre-registration is informative. It warns
-against assuming that self-models emerge "for free" from homeostatic training,
-and it identifies concrete conditions to test next:
-- self-caused events made frequent or behaviourally relevant;
+**The limiting factor was the learners, not the tests.** Survival training
+plus a generic next-observation loss produced agents that failed in three
+distinct ways:
+- **They free-rode** when others changed the world for them (Study 2).
+- **They failed to discover** a necessary action (Study 2b).
+- **They settled into doing nothing** (Study 1b).
+
+In none of these cases did the agents gather the experience from which a
+self-prediction could be learned. These pre-registered negative results warn
+against assuming that self-models emerge "for free" from homeostatic training.
+Positive tests of the markers now require competent learners, via:
+- longer training;
+- curricula or exploration bonuses;
 - prediction objectives not dominated by easy channels;
 - world-model agents.
 
-The exploratory finding that distal predictions depend specifically on
-self-motion signals suggests a partial, inaccurate use of self-information. A
-separately pre-registered follow-up should test it.
+Each should be pre-registered separately and evaluated with the same
+validated battery. The exploratory hint that distal predictions depend on
+self-motion signals (Study 2) did not replicate consistently in Study 2b.
 
 **Scope.** All results are functional. Nothing here bears on whether any agent
 has subjective experience. Passing or failing these tests is evidence about
@@ -280,7 +375,7 @@ mechanisms, not about feelings.
 **Limitations.**
 - a disc body with no limbs;
 - a single environment per study;
-- five training runs per variant and one fixed, untuned training budget;
+- five training runs per variant and one fixed, untuned training budget, which our learners did not master (Studies 1b, 2b);
 - a scripted (non-learning) other robot;
 - a forward model trained with an unweighted mean-squared loss.
 
@@ -292,6 +387,9 @@ All code, pre-registration, trained models, raw trial data and figures are in
 the repository. Every figure and table is regenerated by:
 - `python -m experiments.run_baseline --seeds 30 --out results/`
 - `bash experiments/train_all.sh` followed by `python -m experiments.run_v02`
+- Study 2b: `WORLD=agency_b OUT=results/v02b/models bash experiments/train_all.sh`, then `python -m experiments.run_v02 --models results/v02b/models --out results/v02b --world agency_b`
+- Study 1b: `WORLD=study1 OUT=results/study1b/models RUNS="FULL:0 FULL:1 FULL:2 FULL:3 FULL:4" bash experiments/train_all.sh`, then `python -m experiments.run_baseline --seeds 30 --agents --learned results/study1b/models --out results/study1b` and `python -m experiments.report_study1b`
+- Post-hoc and exploratory: `python -m experiments.sensitivity_v02`, `python -m experiments.explore_v02`, `python -m experiments.explore_study1b`, `python -m experiments.necessity_check`
 
 ## References
 

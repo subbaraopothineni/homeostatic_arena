@@ -336,6 +336,87 @@ python -m experiments.run_v02 --models results/v02/models --out results/v02
 python -m experiments.explore_v02                        # exploratory follow-up
 ```
 
+### How sensitive is the Study 2 test? (post-hoc, [results/v02/sensitivity.md](results/v02/sensitivity.md))
+
+Each trained agent's heat predictions were mixed with a fraction *w* of the
+hand-built comparator's, and the identical pre-registered test was run.
+
+| Share of its own effect the agent anticipates (*w*) | 0 (real agents) | **0.02** | 0.10 and more |
+|---|---|---|---|
+| H1 runs passing (need 4 of 5) | 0 | **4** | 4 |
+| H3a runs passing | 0 | **4** | 4 |
+| H2 runs passing | 0 | 1 | 4 |
+
+The test catches an agent that anticipates just **2%** of a self-caused change.
+The real agents' H1 confidence intervals all lie below +0.016, so they
+anticipated less than about 1%. The negative result is evidence of absence,
+not a weak test.
+
+## Study 2b: the same test when the agent's own action is necessary (pre-registered)
+
+**Why.** A design check with scripted robots ([experiments/necessity_check.py](experiments/necessity_check.py))
+showed that in the Study 2 world a robot that uses the switch survives *no
+better* than one that waits (−0.04 [−0.09, +0.01]). That explains the
+free-riding. The world `agency_b` changes only four settings:
+- the other robot rarely visits the switch;
+- spontaneous flips are rare;
+- energy starts low (0.2–0.6);
+- the lamp starts on.
+
+There, switching clearly pays: +0.25 [+0.17, +0.34]. Everything else was kept
+identical and pre-registered in
+[docs/preregistration_v0.2b.md](docs/preregistration_v0.2b.md) before training.
+
+**Results** ([results/v02b/report.md](results/v02b/report.md)):
+- **H1–H3 not supported**: 0 of 5 runs each. Validity checks V1–V3 passed again.
+- **Manipulation check M1 failed.** The agents used the switch themselves 0.00, 0.04, 0.22, 0.90 and 0.04 times per episode; the requirement was 1.0.
+- **Most agents did not learn the task.** Three of five never learned to charge and died in every episode. The other two charged only when the lamp was off (95–96%), and only one regularly used the switch.
+- **All five runs failed the competence gate.**
+
+The test could still detect a 2% self-prediction effect (5 of 5 runs,
+ignoring the gate). The agents stayed below about 2% (CI bound +0.033).
+
+**What it means.** Making agency *necessary* was not enough. These learning
+agents mostly failed to *discover* the self-action at all, so they never
+gained the experience a self-prediction could be learned from.
+
+## Study 1b: a learning agent on the Study 1 sentience markers (pre-registered)
+
+**Why.** Study 1 had no agent that could pass where the reflexes failed. Five
+learning agents (same architecture, v0.1 senses) were trained on mixed
+foraging and trade-off episodes and evaluated on the unchanged markers.
+
+**Results** ([results/study1b/report.md](results/study1b/report.md)):
+- **Q1 (does trade-off separate learner from reflexes?): no, 0 of 5.** The learners never crossed the wall at any energy.
+- **Q3 (sensitization): not estimable.** The learners were almost never harmed.
+- **Q2 (anticipation): 0.00–0.60**, from only 2–5 heat encounters.
+- **Survival: 0%.** They never reached the charger.
+
+The trajectories show why. The learners **walk away from the charger to the
+far wall and stay pressed against it until their energy runs out.** Training
+converged to this local optimum (exploration noise about 0.1), and the
+stochastic training policy behaves the same
+([results/study1b/exploratory.md](results/study1b/exploratory.md)).
+
+So the "positive group" is still missing. We cannot yet say whether
+trade-off or sensitization *discriminate* architectures, only that no
+reflex, random agent or (this) learning agent passes them.
+
+## The overall picture so far
+
+| Finding | Evidence |
+|---|---|
+| Anticipatory avoidance is passed perfectly by a one-step reflex | Study 1 |
+| Body-vs-world and "who caused it" read-outs are passed by trivial controls (no-change predictor, untrained networks, raw inputs) | Study 2, Study 2b |
+| The sensitization metric carries a large built-in bias (+9 to +10 °C for memoryless agents) | Study 1, 100 seeds |
+| The pre-registered self/other test is **valid** (detects a known mechanism, rejects random networks and a position shortcut) and **sensitive** (2% self-prediction) | Studies 2, 2b, sensitivity |
+| Generic homeostatic learning agents did **not** acquire self-prediction, in either world | Studies 2, 2b |
+| **The bottleneck is the agents' learning, not the tests.** Agents free-ride when they can (Study 2), fail to discover a necessary action (Study 2b), and can settle into doing nothing (Study 1b) | Studies 1b, 2, 2b |
+
+**Next (v0.3):** stronger learners before re-testing: longer training, a
+curriculum or exploration bonus, or a world-model agent (DreamerV3). Each
+needs its own pre-registration.
+
 PyTorch (CPU build) is needed for v0.2: `pip install torch --index-url https://download.pytorch.org/whl/cpu`.
 On WSL, put the virtual environment in the Linux home directory (e.g.
 `~/venvs/homeostatic_arena`). PyTorch's long file paths fail on `/mnt/c`.
@@ -403,8 +484,10 @@ On WSL, put the virtual environment in the Linux home directory (e.g.
 * **v0.2 (done)**: homeostatic RL agent trained only on drive reduction (custom
   recurrent PPO in PyTorch rather than Stable-Baselines3, to add a forward-model
   head), with the pre-registered self/other study above.
-* **v0.2b (next)**: a separately pre-registered follow-up that makes self-caused
-  events common and keeps easy channels from swamping the prediction loss.
+* **v0.2b / 1b (done)**: necessary-agency world and a learning agent on the
+  Study 1 markers (see above).
+* **v0.3 (next)**: stronger learners (longer training, curriculum or exploration
+  bonus, world-model agent) before re-running the same pre-registered tests.
 * **v0.3**: world-model agent (DreamerV3).
 * **v0.4**: legged body; wound-protection marker; ablations.
 * **Later**: LLM-brained agent vs. from-scratch agent; calibration against human
@@ -425,9 +508,13 @@ agents/recurrent.py     v0.2 learning agent (GRU + forward model)
 experiments/train_agent.py, train_all.sh     v0.2 training
 experiments/agency_tests.py, run_v02.py      v0.2 pre-registered tests and verdicts
 experiments/explore_v02.py                   v0.2 exploratory follow-up
+experiments/sensitivity_v02.py               post-hoc sensitivity of the agency test
+experiments/necessity_check.py               Study 2b design check (waiter vs switcher)
+arena/study1.py, experiments/report_study1b.py, explore_study1b.py   Study 1b
 docs/preregistration_v0.2.md, paper_draft.md
 tests/                  pytest suite
-results/                v0.1 outputs (30 seeds), seeds100/, literal_reflex/; v02/ for Study 2
+results/                v0.1 outputs (30 seeds), seeds100/, literal_reflex/;
+                        v02/ Study 2, v02b/ Study 2b, study1b/ Study 1b
 ```
 
 ## References
