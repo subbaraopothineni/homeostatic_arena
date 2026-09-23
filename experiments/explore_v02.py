@@ -11,6 +11,8 @@ Results from this script must be reported as exploratory.
    floor.
 2. Event statistics: how often each cause toggled the lamp in the free-running
    episodes of the ecological check.
+3. Strategy: what survival strategy the FULL agents learned (charging with the
+   lamp off, waiting, using the switch), in 20 fresh free-running episodes.
 
 Usage (from the repository root):
     python -m experiments.explore_v02 --models results/v02/models --out results/v02
@@ -20,6 +22,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 from collections import Counter
 from multiprocessing import get_context
 from pathlib import Path
@@ -31,7 +34,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
-from agents.recurrent import load_model  # noqa: E402
+from agents.recurrent import RecurrentAgent, load_model  # noqa: E402
+from arena.agency import AgencyArena  # noqa: E402
 from experiments.agency_tests import (  # noqa: E402
     WARMUP_STEPS,
     ComparatorPredictor,
@@ -110,10 +114,46 @@ def plot(rows: list[dict], path: Path) -> None:
     plt.close(fig)
 
 
+def strategy(job) -> dict:
+    """What survival strategy did a FULL agent learn? 20 fresh free-running episodes."""
+    seed, models, world = job
+    torch.set_num_threads(1)
+    net, _ = load_model(models / f"FULL_seed{seed}.pt")
+    agent = RecurrentAgent(net)
+    s = Counter()
+    for ep in range(20):
+        env = AgencyArena(world, seed=700_000 + 100 * seed + ep)
+        obs, info = env.reset()
+        agent.reset()
+        done = term = False
+        while not done:
+            obs, _, term, trunc, info = env.step(agent.act(obs, info))
+            done = term or trunc
+            xy = (info["x"], info["y"])
+            s["steps"] += 1
+            s["lamp_on"] += info["lamp_on"]
+            if info["on_charger"]:
+                s["on_charger"] += 1
+                s["charger_lamp_off"] += not info["lamp_on"]
+            if info["lamp_on"] and 0.6 < math.dist(xy, env.scenario.charger_xy) < 2.0:
+                s["waiting_near_charger"] += 1
+            for e in info["events"]:
+                s[f"toggle_{e['cause']}"] += 1
+        s["died"] += term
+    n, oc = s["steps"], max(s["on_charger"], 1)
+    return {"label": f"FULL_seed{seed}", "lamp_on_pct": 100 * s["lamp_on"] / n,
+            "on_charger_pct": 100 * s["on_charger"] / n,
+            "charging_with_lamp_off_pct": 100 * s["charger_lamp_off"] / oc if s["on_charger"] else float("nan"),
+            "waiting_near_charger_when_lamp_on_pct": 100 * s["waiting_near_charger"] / max(s["lamp_on"], 1),
+            "self_toggles_per_ep": s["toggle_self"] / 20, "other_toggles_per_ep": s["toggle_other"] / 20,
+            "spontaneous_toggles_per_ep": s["toggle_spontaneous"] / 20, "deaths_of_20": s["died"]}
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--models", type=Path, default=Path("results/v02/models"))
     p.add_argument("--out", type=Path, default=Path("results/v02"))
+    p.add_argument("--world", default="agency", help="training world of the agents")
     p.add_argument("--workers", type=int, default=12)
     args = p.parse_args()
     spont_step = json.loads((args.out / "meta.json").read_text())["spont_step"]
@@ -159,6 +199,26 @@ def main() -> None:
     total = sum(counts.values(), Counter())
     lines += ["", f"Total: self {total.get('self', 0)}, other {total.get('other', 0)}, "
               f"spontaneous {total.get('spontaneous', 0)}.", ""]
+
+    with get_context("fork").Pool(5) as pool:
+        strat = pool.map(strategy, [(s, args.models, args.world) for s in range(5)
+                                    if (args.models / f"FULL_seed{s}.pt").exists()])
+    with (args.out / "exploratory_strategy.csv").open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(strat[0]), lineterminator="\n")
+        w.writeheader()
+        w.writerows(strat)
+    lines += ["## 3. What survival strategy did the agents learn? (20 fresh episodes per FULL run)",
+              "", "| Run | lamp on (% of time) | on charger (%) | charging done with lamp off (%) | "
+              "waiting near charger while lamp on (%) | self toggles / episode | "
+              "other / episode | spontaneous / episode | deaths of 20 |",
+              "|---|---|---|---|---|---|---|---|---|"]
+    for r in strat:
+        lines.append(f"| {r['label']} | {r['lamp_on_pct']:.0f} | {r['on_charger_pct']:.0f} | "
+                     f"{r['charging_with_lamp_off_pct']:.0f} | "
+                     f"{r['waiting_near_charger_when_lamp_on_pct']:.0f} | "
+                     f"{r['self_toggles_per_ep']:.2f} | {r['other_toggles_per_ep']:.2f} | "
+                     f"{r['spontaneous_toggles_per_ep']:.2f} | {r['deaths_of_20']} |")
+    lines.append("")
     (args.out / "exploratory.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
 

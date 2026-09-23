@@ -40,3 +40,13 @@ Thermal prediction error / no-change error on NOEVENT trials (40 per run). `stat
 
 Total: self 26, other 1378, spontaneous 638.
 
+## 3. What survival strategy did the agents learn? (20 fresh episodes per FULL run)
+
+| Run | lamp on (% of time) | on charger (%) | charging done with lamp off (%) | waiting near charger while lamp on (%) | self toggles / episode | other / episode | spontaneous / episode | deaths of 20 |
+|---|---|---|---|---|---|---|---|---|
+| FULL_seed0 | 53 | 24 | 94 | 70 | 0.05 | 6.45 | 2.45 | 1 |
+| FULL_seed1 | 51 | 37 | 95 | 21 | 0.05 | 5.25 | 3.20 | 4 |
+| FULL_seed2 | 48 | 23 | 96 | 93 | 0.20 | 5.95 | 2.85 | 1 |
+| FULL_seed3 | 47 | 15 | 95 | 37 | 0.05 | 3.90 | 2.00 | 14 |
+| FULL_seed4 | 50 | 0 | nan | 0 | 0.00 | 4.25 | 2.70 | 16 |
+
