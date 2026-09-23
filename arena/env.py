@@ -59,8 +59,13 @@ START_MAX_AMBIENT_C = 30.0     # random starts must be cooler than this ...
 START_MIN_CHARGER_DIST_M = 2.0  # ... and at least this far from the charger
 
 
-def build_xml(scenario: Scenario, charger_radius: float = 0.6) -> str:
-    """MJCF for the scenario. Heat sources and charger are visual-only geoms."""
+def build_xml(scenario: Scenario, charger_radius: float = 0.6, extra_bodies: str = "",
+              extra_actuators: str = "") -> str:
+    """MJCF for the scenario. Heat sources and charger are visual-only geoms.
+
+    `extra_bodies` / `extra_actuators` are inserted after the agent (so the agent's
+    joints stay at qpos[0:2]); v0.1 scenarios pass nothing.
+    """
     h = scenario.half_size
     t = WALL_HALF_THICKNESS_M
     zh = WALL_HALF_HEIGHT_M
@@ -105,11 +110,11 @@ def build_xml(scenario: Scenario, charger_radius: float = 0.6) -> str:
       <site name="touch_site" type="cylinder" size="{AGENT_RADIUS_M + 0.02} 0.12"
             rgba="0 0 0 0"/>
     </body>
-  </worldbody>
+{extra_bodies}  </worldbody>
   <actuator>
     <motor name="motor_x" joint="slide_x" gear="{MOTOR_GEAR}" ctrllimited="true" ctrlrange="-1 1"/>
     <motor name="motor_y" joint="slide_y" gear="{MOTOR_GEAR}" ctrllimited="true" ctrlrange="-1 1"/>
-  </actuator>
+{extra_actuators}  </actuator>
   <sensor>
     <touch name="touch" site="touch_site"/>
   </sensor>
@@ -135,8 +140,7 @@ class HomeostaticArena(gym.Env):
         self.params = physiology if physiology is not None else PhysiologyParams()
         self.sensor_noise = sensor_noise
 
-        self.model = mujoco.MjModel.from_xml_string(
-            build_xml(self.scenario, self.params.charger_radius))
+        self.model = mujoco.MjModel.from_xml_string(self._build_xml())
         self.data = mujoco.MjData(self.model)
         self.dt = TIMESTEP_S * frame_skip
         self.max_steps = int(round(self.scenario.max_seconds / self.dt))
@@ -146,6 +150,7 @@ class HomeostaticArena(gym.Env):
         low = np.array([-1.5, -1.5, -5, -5, -1, -1, 0, -0.1, 0, 0, 0], dtype=np.float32)
         high = np.array([1.5, 1.5, 5, 5, 3, 3, 1, 1.1, 1, 1, 1], dtype=np.float32)
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
+        self._obs_low, self._obs_high = low, high   # bounds of the 11 base channels
         self.action_space = spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self._pending_seed = seed
@@ -154,12 +159,19 @@ class HomeostaticArena(gym.Env):
         self._drive = 0.0
 
     # ----------------------------------------------------------------- helpers
+    def _build_xml(self) -> str:
+        return build_xml(self.scenario, self.params.charger_radius)
+
     @property
     def xy(self) -> tuple[float, float]:
         return float(self.data.qpos[0]), float(self.data.qpos[1])
 
+    def _heat_sources(self) -> list:
+        """Heat sources active right now (subclasses may add switchable ones)."""
+        return self.scenario.heat_sources
+
     def _ambient(self) -> float:
-        return ambient_temperature(self.xy, self.scenario.heat_sources)
+        return ambient_temperature(self.xy, self._heat_sources())
 
     def _dist_to_charger(self) -> float:
         return math.dist(self.xy, self.scenario.charger_xy)
@@ -198,7 +210,7 @@ class HomeostaticArena(gym.Env):
             self.body.energy,
             self.body.damage,
         ], dtype=np.float32)
-        return np.clip(obs, self.observation_space.low, self.observation_space.high)
+        return np.clip(obs, self._obs_low, self._obs_high)
 
     def _info(self, ambient_c: float, on_charger: bool) -> dict[str, Any]:
         x, y = self.xy
@@ -217,15 +229,19 @@ class HomeostaticArena(gym.Env):
             "drive": self._drive,
         }
 
+    def _reset_world(self, options: dict) -> None:
+        """Hook for subclasses: set up world elements (may fill `options` defaults)."""
+
     # ------------------------------------------------------------- gym API
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         if seed is None and self._pending_seed is not None:
             seed = self._pending_seed
         self._pending_seed = None
         super().reset(seed=seed)
-        options = options or {}
+        options = dict(options or {})
 
         mujoco.mj_resetData(self.model, self.data)
+        self._reset_world(options)
         if options.get("start_xy") is not None:
             start = options["start_xy"]
         elif self.scenario.randomize_start:
@@ -245,7 +261,7 @@ class HomeostaticArena(gym.Env):
 
     def step(self, action):
         action = np.clip(np.asarray(action, dtype=np.float64).reshape(2), -1.0, 1.0)
-        self.data.ctrl[:] = action
+        self.data.ctrl[:2] = action
         mujoco.mj_step(self.model, self.data, nstep=self.frame_skip)
         self.steps += 1
 

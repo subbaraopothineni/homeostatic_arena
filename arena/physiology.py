@@ -63,6 +63,19 @@ class HeatSource:
         t = min(1.0, max(0.0, t))
         return math.hypot(px - (ax + t * abx), py - (ay + t * aby))
 
+    def nearest_point(self, xy: XY) -> tuple[float, float]:
+        """The point of the source (the point itself, or on the segment) closest to `xy`."""
+        if self.p1 is None:
+            return self.p0
+        px, py = float(xy[0]), float(xy[1])
+        (ax, ay), (bx, by) = self.p0, self.p1
+        abx, aby = bx - ax, by - ay
+        length_sq = abx * abx + aby * aby
+        if length_sq == 0.0:
+            return self.p0
+        t = min(1.0, max(0.0, ((px - ax) * abx + (py - ay) * aby) / length_sq))
+        return ax + t * abx, ay + t * aby
+
     def temperature_rise(self, xy: XY) -> float:
         """Rise above ambient (deg C) at `xy`: (peak - ambient) * exp(-d^2 / 2 sigma^2)."""
         d = self.distance(xy)
