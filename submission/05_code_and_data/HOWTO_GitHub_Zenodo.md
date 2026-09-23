@@ -10,7 +10,7 @@ explains how to get those three things.
 
 | File | What it is |
 |---|---|
-| `homeostatic_arena_code_data.zip` | All code, tests, documentation, pre-registrations, trained models, raw data and result tables, as committed (no virtual environments or build tools). About 40 MB. |
+| `homeostatic_arena_code_data.zip` | All code, tests, documentation, pre-registrations, trained models, raw data and result tables, as committed (no virtual environments or build tools). About 35 MB (47 MB unpacked). |
 | `homeostatic_arena_history.bundle` | The complete git history in one file, including the pre-registration commits cited in the paper (`d70a2fe`, `3486e57`). Anyone can restore it with `git clone homeostatic_arena_history.bundle`. |
 | `CITATION.cff.template` | Citation metadata for GitHub and Zenodo. Fill it in and copy it to the repository root as `CITATION.cff`. |
 | `HOWTO_GitHub_Zenodo.md` | This page. |

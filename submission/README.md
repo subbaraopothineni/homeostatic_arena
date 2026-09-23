@@ -27,7 +27,7 @@ Society for Artificial Life).
 
 | Requirement | In this package |
 |---|---|
-| Article length: 6,000–12,000 words | The main text is 6,441 words (Introduction to Conclusion) |
+| Article length: 6,000–12,000 words | The main text is 6,460 words (Introduction to Conclusion) |
 | An abstract covering what was done, why, how, the findings and the outcome | 246 words, with no citations |
 | 5–6 keywords | 6, on the title page |
 | APA 7th edition citations and references | Throughout |

@@ -101,7 +101,7 @@ def figure2_markers(path: Path) -> None:
     plots.plot_markers(summary, path, 0.08, 0.9)
 
 
-def figure5_sensitivity(path: Path) -> None:
+def figure6_sensitivity(path: Path) -> None:
     rows = list(csv.DictReader((ROOT / "results" / "v02" / "sensitivity.csv").open()))
     actual = [r for r in csv.DictReader((ROOT / "results" / "v02" / "hypotheses.csv").open())
               if r["variant"] == "FULL" and r["effect"] == "H1_spont_minus_self"]
@@ -120,8 +120,8 @@ def main() -> None:
     figure2_markers(OUT / "Figure2.png")
     plots_v02.plot_relpe(v02["relpe"], OUT / "Figure3.png")
     plots_v02.plot_hypotheses(v02["hypotheses"], OUT / "Figure4.png")
-    figure5_sensitivity(OUT / "Figure5.png")
-    plots_v02.plot_probes(v02["probes"], OUT / "Figure6.png")
+    plots_v02.plot_probes(v02["probes"], OUT / "Figure5.png")
+    figure6_sensitivity(OUT / "Figure6.png")
     figure7_learners(OUT / "Figure7.png")
     for f in sorted(OUT.iterdir()):
         print(f"{f.name:28s} {f.stat().st_size / 1e6:6.2f} MB")
