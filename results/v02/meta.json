@@ -1,5 +1,6 @@
 {
   "spont_step": 32,
   "trials_per_condition": 40,
-  "models": "results/v02/models"
+  "models": "results/v02/models",
+  "world": "agency"
 }

@@ -1,0 +1,6 @@
+{
+  "spont_step": 32,
+  "trials_per_condition": 40,
+  "models": "results/v02b/models",
+  "world": "agency_b"
+}

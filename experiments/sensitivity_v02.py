@@ -113,17 +113,19 @@ def main() -> None:
     lines = ["# POST-HOC sensitivity of the Study 2 agency test (not pre-registered)", "",
              "Blended predictor = (1 − w) × trained FULL agent + w × hand-built comparator "
              "(heat channels). Same T2 battery, 40 trials per condition, same pass rule "
-             "(≥ 4 of 5 runs; FULL_seed4 fails the competence gate and never counts).", "",
+             "(≥ 4 of 5 runs; runs that fail the competence gate never count).", "",
              "| w | H1 effect (mean of 5 runs) | H1 runs passing | H2 runs passing | "
-             "H3a runs passing | Would H1 be declared supported? |", "|---|---|---|---|---|---|"]
+             "H3a runs passing | Would H1 be declared supported? | H1 CI > 0 ignoring the gate |",
+             "|---|---|---|---|---|---|---|"]
     summary = {}
     for w in WEIGHTS:
         sel = [r for r in rows if r["w"] == w]
         n = {h: sum(r["counts"] for r in sel if r["hypothesis"] == h) for h in HYPS}
         h1 = np.mean([r["mean"] for r in sel if r["hypothesis"] == HYPS[0]])
         summary[w] = (h1, n)
+        raw = sum(r["ci_excludes_0"] for r in sel if r["hypothesis"] == HYPS[0])
         lines.append(f"| {w} | {h1:+.3f} | {n[HYPS[0]]}/5 | {n[HYPS[1]]}/5 | {n[HYPS[2]]}/5 | "
-                     f"{'yes' if n[HYPS[0]] >= SUPPORT_MIN else 'no'} |")
+                     f"{'yes' if n[HYPS[0]] >= SUPPORT_MIN else 'no'} | {raw}/5 |")
     detect = [w for w in WEIGHTS if summary[w][1][HYPS[0]] >= SUPPORT_MIN]
     actual = [r for r in csv.DictReader((args.out / "hypotheses.csv").open())
               if r["variant"] == "FULL" and r["effect"] == HYPS[0]]

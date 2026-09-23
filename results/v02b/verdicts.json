@@ -1,0 +1,64 @@
+{
+  "FULL:H1_spont_minus_self": {
+    "passing_runs": 0,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "FULL:H2_omit_minus_noevent": {
+    "passing_runs": 0,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "FULL:H3a_selfblind_interaction": {
+    "passing_runs": 0,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "FULL:H3b_otherblind_interaction": {
+    "passing_runs": 0,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "UNTRAINED:H1_spont_minus_self": {
+    "passing_runs": 0,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "UNTRAINED:H2_omit_minus_noevent": {
+    "passing_runs": 2,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "UNTRAINED:H3a_selfblind_interaction": {
+    "passing_runs": 1,
+    "not_applicable": 0,
+    "runs": 5,
+    "verdict": "not supported"
+  },
+  "UNTRAINED:H3b_otherblind_interaction": {
+    "passing_runs": 0,
+    "not_applicable": 5,
+    "runs": 5,
+    "verdict": "not applicable"
+  },
+  "V1_untrained_not_fooled": {
+    "ok": true,
+    "fooled_by_untrained": []
+  },
+  "V2_comparator_passes_H1_H2": {
+    "ok": true
+  },
+  "V3_position_rule_accuracy": {
+    "position:SELF": 1.0,
+    "position:OTHER": 1.0,
+    "position:SPONT": 1.0,
+    "position:OTHER-ONPAD": 0.0,
+    "position:SPONT-ONPAD": 0.0
+  }
+}

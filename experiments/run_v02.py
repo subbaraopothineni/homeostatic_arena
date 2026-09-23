@@ -261,7 +261,7 @@ def main() -> None:
         v = json.loads((args.out / "verdicts.json").read_text())
         meta = json.loads((args.out / "meta.json").read_text())
         plots_v02.make_all(tables, args.models, args.out)
-        report_v02.write(tables, v, meta["spont_step"], args.out)
+        report_v02.write(tables, v, meta["spont_step"], args.out, meta.get("world", "agency"))
         print(f"redrew figures and report in {args.out}/")
         return
     t0 = time.perf_counter()
@@ -280,10 +280,11 @@ def main() -> None:
     tables = save_tables(results, args.out)
     v = verdicts([r for r in results if r["spec"]["variant"] != "REFLEX"])
     (args.out / "verdicts.json").write_text(json.dumps(v, indent=2, default=str) + "\n")
-
-    from experiments import plots_v02, report_v02
+    (args.out / "meta.json").write_text(json.dumps(
+        {"spont_step": spont_step, "trials_per_condition": args.trials,
+         "models": str(args.models), "world": args.world}, indent=2) + "\n")
     plots_v02.make_all(tables, args.models, args.out)
-    report_v02.write(tables, v, spont_step, args.out)
+    report_v02.write(tables, v, spont_step, args.out, args.world)
     print(json.dumps(v, indent=2, default=str))
     print(f"total {time.perf_counter() - t0:.0f} s; outputs in {args.out}/")
 
