@@ -64,7 +64,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
     for row in rows:
         columns += [k for k in row if k not in columns]
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=columns)
+        writer = csv.DictWriter(f, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
