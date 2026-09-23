@@ -276,9 +276,10 @@ class AgencyArena(HomeostaticArena):
                 self._info(ambient_c, on_charger))
 
     # ----------------------------------------------------------------- senses
-    def thermal_vision(self) -> np.ndarray:
-        """8 world-frame sectors; each the strongest active source in that direction."""
-        x, y = self.xy
+    def thermal_vision(self, xy=None) -> np.ndarray:
+        """8 world-frame sectors; each the strongest active source in that direction
+        (seen from `xy`, default: the agent's position; noise-free)."""
+        x, y = self.xy if xy is None else (float(xy[0]), float(xy[1]))
         out = np.zeros(8)
         for src in self._heat_sources():
             nx, ny = src.nearest_point((x, y))
