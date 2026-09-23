@@ -57,10 +57,12 @@ PREV_REWARD_SCALE = 20.0
 BODY_AFFECTED_C = 0.5         # a lamp toggle "affects the body" if ambient changes this much
 
 
-def agency() -> Scenario:
-    """The agency world (pre-registered layout)."""
+def agency(other_pad_prob: float = 0.5, spontaneous_rate_hz: float = 1 / 20,
+           start_energy_range: tuple[float, float] = (0.4, 1.0), lamp_on_prob: float = 0.5,
+           name: str = "agency") -> Scenario:
+    """The agency world (pre-registered layout; Study 2 uses the defaults)."""
     return Scenario(
-        name="agency",
+        name=name,
         heat_sources=[HeatSource((-2.0, 2.0), peak_c=60.0, sigma=0.7)],   # static hot spot
         charger_xy=(3.0, 3.0),
         start_xy=(-3.0, -3.0),
@@ -72,13 +74,26 @@ def agency() -> Scenario:
             "pad_xy": (0.0, 0.0),
             "pad_radius": 0.5,
             "other_speed": 0.6,
-            "other_pad_prob": 0.5,
-            "spontaneous_rate_hz": 1 / 20,
+            "other_pad_prob": other_pad_prob,
+            "spontaneous_rate_hz": spontaneous_rate_hz,
             "shock_rate_hz": 1 / 30,
             "shock_amount": 0.1,
-            "start_energy_range": (0.4, 1.0),
+            "start_energy_range": start_energy_range,
+            "lamp_on_prob": lamp_on_prob,           # chance the lamp is on at episode start
         },
     )
+
+
+def agency_b() -> Scenario:
+    """Study 2b world: the agent's own action is necessary (see
+    docs/preregistration_v0.2b.md and experiments/necessity_check.py). Same layout;
+    the other robot rarely visits the pad, spontaneous toggles are rare, energy
+    starts low and the lamp starts on, so waiting for others no longer works."""
+    return agency(other_pad_prob=0.05, spontaneous_rate_hz=1 / 120,
+                  start_energy_range=(0.2, 0.6), lamp_on_prob=1.0, name="agency_b")
+
+
+WORLDS = {"agency": agency, "agency_b": agency_b}
 
 
 class AgencyArena(HomeostaticArena):
@@ -91,7 +106,7 @@ class AgencyArena(HomeostaticArena):
 
     def __init__(self, scenario: Scenario | str = "agency", frame_skip: int = 5,
                  physiology=None, sensor_noise: bool = True, seed: int | None = None):
-        scenario = agency() if scenario == "agency" else scenario
+        scenario = WORLDS[scenario]() if isinstance(scenario, str) else scenario
         self.lamp: HeatSource = scenario.extra["lamp"]
         self.pad_xy: tuple[float, float] = scenario.extra["pad_xy"]
         self.pad_radius: float = scenario.extra["pad_radius"]
@@ -195,7 +210,8 @@ class AgencyArena(HomeostaticArena):
     def _reset_world(self, options: dict) -> None:
         ex = self.scenario.extra
         lamp_on = options.get("lamp_on")
-        self._set_lamp(bool(self.np_random.random() < 0.5) if lamp_on is None else bool(lamp_on))
+        self._set_lamp(bool(self.np_random.random() < ex.get("lamp_on_prob", 0.5))
+                       if lamp_on is None else bool(lamp_on))
         if "start_energy" not in options:
             options["start_energy"] = float(self.np_random.uniform(*ex["start_energy_range"]))
         other_xy = options.get("other_xy")

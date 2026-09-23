@@ -20,7 +20,10 @@ import numpy as np
 import torch
 
 from agents.recurrent import VARIANTS, NetConfig, RecurrentActorCritic, save_model
-from arena.agency import AgencyArena
+from arena.agency import WORLDS, AgencyArena
+from arena.study1 import Study1Arena
+
+TRAIN_WORLDS = tuple(WORLDS) + ("study1",)
 
 
 @dataclass
@@ -39,19 +42,29 @@ class TrainConfig:
     max_grad_norm: float = 0.5
     reward_scale: float = 10.0
     fwd_coef: float = 1.0
+    world: str = "agency"        # agency (Study 2), agency_b (Study 2b), study1 (Study 1b)
 
 
-def make_net(variant: str, seed: int) -> RecurrentActorCritic:
+def make_env(world: str, seed: int):
+    if world == "study1":
+        return Study1Arena(seed=seed)
+    return AgencyArena(world, seed=seed)
+
+
+def make_net(variant: str, seed: int, world: str = "agency") -> RecurrentActorCritic:
     if variant not in VARIANTS:
         raise ValueError(f"variant must be one of {VARIANTS}")
+    if world == "study1" and variant == "NOEFF":
+        raise ValueError("the Study 1 observation has no efference-copy channels")
     torch.manual_seed(seed)
-    return RecurrentActorCritic(NetConfig(efference=(variant != "NOEFF")))
+    obs_dim = make_env(world, 0).observation_space.shape[0]
+    return RecurrentActorCritic(NetConfig(obs_dim=obs_dim, efference=(variant != "NOEFF")))
 
 
 def train(variant: str, seed: int, config: TrainConfig, out_path: Path | None = None,
           verbose: bool = True) -> tuple[RecurrentActorCritic, list[dict]]:
     """Train one run. UNTRAINED returns the initial network without training."""
-    net = make_net(variant, seed)
+    net = make_net(variant, seed, config.world)
     if variant == "NOFWD":
         config.fwd_coef = 0.0
     log: list[dict] = []
@@ -72,7 +85,7 @@ def _ppo(net: RecurrentActorCritic, seed: int, cfg: TrainConfig, verbose: bool) 
     n, T = cfg.n_envs, cfg.rollout
     D = net.config.obs_dim
     opt = torch.optim.Adam(net.parameters(), lr=cfg.lr)
-    envs = [AgencyArena(seed=seed * 1000 + i) for i in range(n)]
+    envs = [make_env(cfg.world, seed * 1000 + i) for i in range(n)]
     obs = np.stack([env.reset()[0] for env in envs])
     starts = np.ones(n, dtype=np.float32)          # 1 = first step of an episode
     h = net.initial_state(n)
@@ -205,9 +218,10 @@ def main() -> None:
     p.add_argument("--steps", type=int, default=TrainConfig.total_steps)
     p.add_argument("--out", type=Path, default=Path("results/v02/models"))
     p.add_argument("--threads", type=int, default=1)
+    p.add_argument("--world", choices=TRAIN_WORLDS, default="agency")
     args = p.parse_args()
     torch.set_num_threads(args.threads)
-    cfg = TrainConfig(total_steps=args.steps)
+    cfg = TrainConfig(total_steps=args.steps, world=args.world)
     path = args.out / f"{args.variant}_seed{args.seed}.pt"
     t0 = time.perf_counter()
     train(args.variant, args.seed, cfg, path)

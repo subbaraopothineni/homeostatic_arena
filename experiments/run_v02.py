@@ -77,7 +77,7 @@ def _probes(t2, t1_rows, raw: bool) -> dict[str, float]:
 
 def evaluate(job) -> dict:
     """Every test for one predictor (runs in a worker process)."""
-    spec, spont_step, trials = job
+    spec, spont_step, trials, world = job
     torch.set_num_threads(1)
     t0 = time.perf_counter()
     res = {"spec": spec}
@@ -115,11 +115,12 @@ def evaluate(job) -> dict:
     if spec["variant"] == "NO-CHANGE":                     # raw-input probe baseline
         res["probes"] = _probes(t2, t1, raw=True)
     if spec["variant"] in TRAINED:
-        gate = free_running(net, GATE_EPISODES, seed0=900_000)
+        gate = free_running(net, GATE_EPISODES, seed0=900_000, world=world)
         gate.pop("natural")
         res["gate"] = gate
     if spec["variant"] == "FULL":
-        res["ecological"] = free_running(net, ECOLOGICAL_EPISODES, seed0=800_000)["natural"]
+        res["ecological"] = free_running(net, ECOLOGICAL_EPISODES, seed0=800_000,
+                                         world=world)["natural"]
         res["t1_behaviour"] = [run_t1_behaviour(RecurrentAgent(net), c, i)
                                for c in T1_CONDITIONS for i in range(trials)]
     res["seconds"] = time.perf_counter() - t0
@@ -248,6 +249,8 @@ def main() -> None:
     p.add_argument("--out", type=Path, default=Path("results/v02"))
     p.add_argument("--trials", type=int, default=TRIALS_PER_CONDITION)
     p.add_argument("--workers", type=int, default=12)
+    p.add_argument("--world", default="agency",
+                   help="training world of the agents (free-running episodes use it)")
     p.add_argument("--replot", action="store_true",
                    help="only redraw figures and report from the saved tables")
     args = p.parse_args()
@@ -265,7 +268,7 @@ def main() -> None:
     spont_step = self_event_step()
     specs = predictor_specs(args.models)
     specs.append({"label": "REFLEX", "variant": "REFLEX", "seed": None, "path": None})
-    jobs = [(s, spont_step, args.trials) for s in specs]
+    jobs = [(s, spont_step, args.trials, args.world) for s in specs]
     results = []
     with get_context("fork").Pool(args.workers) as pool:
         for res in pool.imap_unordered(evaluate, jobs):

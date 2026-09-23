@@ -401,14 +401,15 @@ def run_t1_behaviour(agent, condition: str, index: int, seconds: float = 5.0) ->
 # Free-running episodes: competence gate and ecological check
 # ==========================================================================
 
-def free_running(net: RecurrentActorCritic, n_episodes: int, seed0: int) -> dict:
+def free_running(net: RecurrentActorCritic, n_episodes: int, seed0: int,
+                 world: str = "agency") -> dict:
     """Agent's own deterministic policy with random events on. Returns forward-model
     error vs NO-CHANGE, survival, and relPE of naturally occurring lamp toggles."""
     agent = RecurrentAgent(net)
     fwd_err, nochange_err, survived, seconds = [], [], [], []
     natural = []                                   # (cause, relPE)
     for ep in range(n_episodes):
-        env = AgencyArena(seed=seed0 + ep)
+        env = AgencyArena(world, seed=seed0 + ep)
         obs, info = env.reset()
         agent.reset()
         done = False

@@ -73,8 +73,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--seeds", type=int, default=30, help="episodes per condition")
     parser.add_argument("--out", type=Path, default=Path("results"))
-    parser.add_argument("--agents", nargs="+", default=list(AGENT_NAMES),
+    parser.add_argument("--agents", nargs="*", default=list(AGENT_NAMES),
                         choices=ALL_AGENT_NAMES, help="agents to run (default: baseline set)")
+    parser.add_argument("--learned", type=Path, default=None,
+                        help="directory of Study 1b models (FULL_seed*.pt) to add as agents")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     t_start = time.perf_counter()
@@ -89,9 +91,13 @@ def main() -> None:
     episode_rows: list[dict] = []
     foraging_logs, tradeoff_logs = {}, {}
 
-    for agent in args.agents:
+    factories = {name: functools.partial(make_agent, name) for name in args.agents}
+    if args.learned is not None:
+        factories.update(learned_factories(args.learned))
+    args.agents = list(factories)
+
+    for agent, factory in factories.items():
         t0 = time.perf_counter()
-        factory = functools.partial(make_agent, agent)
         logs = run_foraging(factory, args.seeds, agent_name=agent)
         results = {
             "survival": survival_marker(logs=logs),
@@ -143,6 +149,18 @@ def main() -> None:
         print(f"{marker[:5]}:{key}".ljust(width)
               + "".join(fmt_metric(summary[a][key]).ljust(40) for a in summary))
     print(f"\nTotal runtime {time.perf_counter() - t_start:.1f} s; outputs in {args.out}/")
+
+
+def learned_factories(models: Path) -> dict:
+    """Study 1b: trained recurrent agents (deterministic policy) as marker-test agents."""
+    from agents.recurrent import RecurrentAgent, load_model
+
+    out = {}
+    for path in sorted(models.glob("FULL_seed*.pt")):
+        net, _ = load_model(path)
+        out[f"learned_seed{path.stem.split('seed')[1]}"] = (
+            lambda seed, net=net: RecurrentAgent(net))
+    return out
 
 
 def results_rows(rows: list[dict], agent: str) -> list[dict]:

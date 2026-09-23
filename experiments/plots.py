@@ -38,11 +38,26 @@ AGENT_LABELS = {
     "reflex_nociceptive_literal": "Literal reflex\n(nociceptive)",
     "reflex_thermotactic_literal": "Literal reflex\n(thermotactic)",
 }
+LEARNED_COLOR = "#4a3aa7"     # Study 1b learning agents (all seeds share the entity colour)
 INK = "#0b0b0b"
 INK_2 = "#52514e"
 INK_3 = "#8a8983"
 GRID = "#e4e3df"
 SURFACE = "#fcfcfb"
+
+
+def color_of(agent: str) -> str:
+    if agent.startswith("learned"):
+        return LEARNED_COLOR
+    return AGENT_COLORS.get(agent, "#52514e")
+
+
+def label_of(agent: str) -> str:
+    if agent.startswith("learned_seed"):
+        return "Learned\n(seed " + agent.split("seed")[1] + ")"
+    return AGENT_LABELS.get(agent, agent)
+
+
 # Single-hue (orange) sequential ramp for temperature, near-white at 25 C.
 HEAT_CMAP = LinearSegmentedColormap.from_list(
     "heat", ["#fbf6f2", "#f9d9c8", "#f3ad8a", "#eb6834", "#b8431a", "#7a2a0e"])
@@ -124,7 +139,7 @@ def plot_trajectories_foraging(logs_by_agent: dict[str, list[EpisodeLog]], scena
     for ax, agent in zip(np.atleast_1d(axes), agents):
         im = _heat_field(ax, scenario, params.charger_radius)
         _trajectories(ax, logs_by_agent[agent][:n_show])
-        ax.set_title(AGENT_LABELS[agent].replace("\n", " "))
+        ax.set_title(label_of(agent).replace("\n", " "))
     fig.colorbar(im, ax=axes, shrink=0.8, label="ambient temperature (°C)")
     fig.suptitle(f"Foraging world: first {n_show} episodes per agent (90 s)",
                  color=INK, fontsize=12)
@@ -149,7 +164,7 @@ def plot_trajectories_tradeoff(logs_by_agent: dict[str, list[EpisodeLog]],
             im = _heat_field(ax, scenarios[e], params.charger_radius)
             logs = [lg for lg in logs_by_agent[agent] if lg.start_energy == e][:n_show]
             _trajectories(ax, logs)
-            label = AGENT_LABELS[agent].replace("\n", " ")
+            label = label_of(agent).replace("\n", " ")
             ax.set_title(f"{label}\nstart energy {e}")
     fig.colorbar(im, ax=axes, shrink=0.6, label="ambient temperature (°C)")
     fig.suptitle(f"Trade-off world: first {n_show} episodes per condition (60 s)",
@@ -166,7 +181,7 @@ def _bar_panel(ax, agents: Sequence[str], metrics: Sequence[Metric], title: str,
         if math.isnan(m.mean):
             ax.text(x, 0, "n/a", ha="center", va="bottom", color=INK_2, fontsize=8.5)
             continue
-        ax.bar(x, m.mean, width=0.55, color=AGENT_COLORS[agent], zorder=2)
+        ax.bar(x, m.mean, width=0.55, color=color_of(agent), zorder=2)
         if not (math.isnan(m.ci_low) or math.isnan(m.ci_high)):
             ax.errorbar(x, m.mean, yerr=[[m.mean - m.ci_low], [m.ci_high - m.mean]],
                         fmt="none", ecolor=INK, elinewidth=1.2, capsize=4, zorder=3)
@@ -180,7 +195,7 @@ def _bar_panel(ax, agents: Sequence[str], metrics: Sequence[Metric], title: str,
                     ha="center", va=va, fontsize=8, color=INK_2)
     if zero_line:
         ax.axhline(0.0, color=INK_2, lw=1.0, zorder=1)
-    ax.set_xticks(xs, [AGENT_LABELS[a] for a in agents])
+    ax.set_xticks(xs, [label_of(a) for a in agents])
     ax.set_title(title, loc="left")
     ax.set_ylabel(ylabel)
     ax.grid(axis="x", visible=False)
@@ -230,9 +245,9 @@ def plot_tradeoff_by_energy(summary: dict[str, dict[str, Metric]],
             y = np.array([m.mean for m in ms])
             lo = np.array([m.ci_low for m in ms])
             hi = np.array([m.ci_high for m in ms])
-            ax.fill_between(energies, lo, hi, color=AGENT_COLORS[agent], alpha=0.12, lw=0)
-            ax.plot(energies, y, color=AGENT_COLORS[agent], lw=2.0, marker="o", ms=6,
-                    mec=SURFACE, mew=1.5, label=AGENT_LABELS[agent].replace("\n", " "))
+            ax.fill_between(energies, lo, hi, color=color_of(agent), alpha=0.12, lw=0)
+            ax.plot(energies, y, color=color_of(agent), lw=2.0, marker="o", ms=6,
+                    mec=SURFACE, mew=1.5, label=label_of(agent).replace("\n", " "))
         ax.set_title(title, loc="left")
         ax.set_xlabel("start energy")
         ax.set_xticks(list(energies))
@@ -252,7 +267,7 @@ def plot_physiology_trace(log: EpisodeLog, path: Path,
     d = log.data
     t = d["t"]
     encounters = find_encounters(d["ambient_c"], d["nociceptor"])
-    color = AGENT_COLORS.get(log.agent, INK)
+    color = color_of(log.agent)
     fig, axes = plt.subplots(4, 1, figsize=(10, 8.5), sharex=True)
 
     def shade(ax):
@@ -299,7 +314,7 @@ def plot_physiology_trace(log: EpisodeLog, path: Path,
 
     outcome = "died" if log.died else "survived"
     n_harm = sum(e.harmful for e in encounters)
-    fig.suptitle(f"Physiology trace: {AGENT_LABELS.get(log.agent, log.agent).replace(chr(10), ' ')}, "
+    fig.suptitle(f"Physiology trace: {label_of(log.agent).replace(chr(10), ' ')}, "
                  f"{log.scenario} seed {log.seed} ({outcome}; {len(encounters)} heat encounters, "
                  f"{n_harm} harmful; grey = encounter, orange = harmful)",
                  color=INK, fontsize=10.5)
