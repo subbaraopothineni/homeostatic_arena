@@ -235,14 +235,32 @@ def save_tables(results: list[dict], out: Path) -> dict[str, list[dict]]:
     return tables
 
 
+def load_tables(out: Path) -> dict[str, list[dict]]:
+    names = ("runs", "hypotheses", "relpe", "attribution", "t2_trials", "t1_trials",
+             "t1_behaviour", "ecological", "probes")
+    return {n: list(csv.DictReader((out / f"{n}.csv").open())) if (out / f"{n}.csv").exists()
+            else [] for n in names}
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--models", type=Path, default=Path("results/v02/models"))
     p.add_argument("--out", type=Path, default=Path("results/v02"))
     p.add_argument("--trials", type=int, default=TRIALS_PER_CONDITION)
     p.add_argument("--workers", type=int, default=12)
+    p.add_argument("--replot", action="store_true",
+                   help="only redraw figures and report from the saved tables")
     args = p.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
+    from experiments import plots_v02, report_v02
+    if args.replot:
+        tables = load_tables(args.out)
+        v = json.loads((args.out / "verdicts.json").read_text())
+        meta = json.loads((args.out / "meta.json").read_text())
+        plots_v02.make_all(tables, args.models, args.out)
+        report_v02.write(tables, v, meta["spont_step"], args.out)
+        print(f"redrew figures and report in {args.out}/")
+        return
     t0 = time.perf_counter()
     spont_step = self_event_step()
     specs = predictor_specs(args.models)

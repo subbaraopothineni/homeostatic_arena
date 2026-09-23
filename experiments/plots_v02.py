@@ -33,10 +33,10 @@ def _f(x) -> float:
         return math.nan
 
 
-def _symlog(ax, axis: str, linthresh: float) -> None:
+def _symlog(ax, axis: str, linthresh: float, limits: tuple[float, float] | None = None) -> None:
     """Symmetric log scale with clean decade ticks (0, +-0.1, +-1, ...) and plain labels."""
     getattr(ax, f"set_{axis}scale")("symlog", linthresh=linthresh)
-    lo, hi = getattr(ax, f"get_{axis}lim")()
+    lo, hi = limits if limits is not None else getattr(ax, f"get_{axis}lim")()
     ticks = [0.0]
     k = math.ceil(math.log10(linthresh))
     while 10.0 ** k <= max(abs(lo), abs(hi)) * 1.0001:
@@ -135,6 +135,7 @@ def plot_relpe(rows: list[dict], path: Path) -> None:
 def plot_dissociation(rows: list[dict], path: Path) -> None:
     """Increase in relPE when self-motion or other-robot signals are frozen."""
     fig, axes = plt.subplots(1, 2, figsize=(10, 3.8), sharey=True, layout="constrained")
+    values = []
     for ax, abl in zip(axes, ("self-blind", "other-blind")):
         for g in ("FULL", "UNTRAINED", "COMPARATOR"):
             runs = sorted({r["label"] for r in rows if r["variant"] == g})
@@ -145,13 +146,17 @@ def plot_dissociation(rows: list[dict], path: Path) -> None:
                     abl_v = next((_f(r["mean"]) for r in rows if r["label"] == run
                                   and r["condition"] == f"{c}|{abl}"), math.nan)
                     return abl_v - base
-                ax.plot([0, 1], [val("SELF"), val("OTHER")], "o-", color=COLORS[g], ms=6,
+                pair = [val("SELF"), val("OTHER")]
+                values += pair
+                ax.plot([0, 1], pair, "o-", color=COLORS[g], ms=6,
                         lw=1.2, alpha=0.85, label=g if i == 0 else None)
         ax.axhline(0.0, color=INK_2, lw=1.0)
         ax.set_xticks([0, 1], ["SELF-caused", "OTHER-caused"])
         ax.set_xlim(-0.3, 1.3)
-        _symlog(ax, "y", 0.1)
         ax.set_title(f"{abl}: increase in relPE", loc="left")
+    finite = [v for v in values if math.isfinite(v)] or [0.0]
+    span = max(finite) - min(finite) or 1.0
+    _symlog(axes[0], "y", 0.1, (min(finite) - 0.1 * span, max(finite) + 0.1 * span))
     axes[0].set_ylabel("relPE(ablated) − relPE(intact)")
     axes[1].legend(loc="upper left")
     fig.suptitle("Double dissociation test (H3): which signals does each prediction use?",

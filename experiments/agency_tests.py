@@ -152,6 +152,8 @@ class Trial:
     causes: list = field(default_factory=list)
     states: dict = field(default_factory=dict)      # lag -> memory state
     raw_windows: dict = field(default_factory=dict)  # lag -> last 5 observations
+    # (step, thermal error of the prediction, thermal error of predicting no change)
+    step_errors: list = field(default_factory=list)
 
 
 def _thermal_pe(pred, actual, prev) -> tuple[float, float]:
@@ -205,6 +207,8 @@ def run_t2_trial(predictor: Predictor, condition: str, ablation: str, lamp_on: b
         prev = obs
         obs, _, _, _, info = env.step(action)
         seen = _freeze(obs, frozen, channels) if frozen is not None else obs
+        trial.step_errors.append((step, _thermal_pe(pred, obs, prev)[1],
+                                  float(np.sum((prev[THERMAL_SLICE] - obs[THERMAL_SLICE]) ** 2))))
 
         if trial.event_step is None:
             toggled = [e for e in info["events"] if e["type"] == "lamp_toggle"]
