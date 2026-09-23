@@ -49,10 +49,15 @@ def tradeoff(start_energy: float = 0.9) -> Scenario:
     A heat wall along x = 0 separates the start (west) from the charger (east).
     Short route: straight through the wall (costs damage).
     Long route: around the wall ends via the gaps at |y| > 4 (costs energy).
+
+    Wall parameters were changed from the design brief's 58 C / sigma 0.35 m to
+    60 C / sigma 0.5 m: with the original wall a run through it cost only 0.007
+    damage at 2 m/s (0.04 at 1.6 m/s), so the "costly" short route was nearly
+    free. See experiments.markers.tradeoff_design_check.
     """
     return Scenario(
         name="tradeoff",
-        heat_sources=[HeatSource((0.0, -3.3), (0.0, 3.3), peak_c=58.0, sigma=0.35)],
+        heat_sources=[HeatSource((0.0, -3.3), (0.0, 3.3), peak_c=60.0, sigma=0.5)],
         charger_xy=(3.0, 0.0),
         start_xy=(-3.0, 0.0),
         start_energy=start_energy,

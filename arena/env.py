@@ -42,6 +42,9 @@ OBS_NAMES: tuple[str, ...] = (
 
 TIMESTEP_S = 0.01          # MuJoCo integration step
 AGENT_RADIUS_M = 0.25
+AGENT_MASS_KG = 1.0
+SLIDE_DAMPING = 2.5        # N s / m
+MOTOR_GEAR = 5.0           # N at ctrl = 1; terminal speed = gear / damping = 2 m/s
 AGENT_Z_M = 0.15           # body height; the agent never touches the floor
 WALL_HALF_THICKNESS_M = 0.1
 WALL_HALF_HEIGHT_M = 0.3
@@ -50,7 +53,7 @@ TEMP_NOISE_C = 0.1
 BEACON_LENGTH_M = 4.0
 BEACON_NOISE = 0.002
 TOUCH_SCALE_N = 20.0
-VEL_SCALE = 2.0            # terminal speed at |ctrl| = 1 is gear / damping = 2 m/s
+VEL_SCALE = MOTOR_GEAR / SLIDE_DAMPING  # terminal speed (m/s) at ctrl = 1
 DEATH_PENALTY = 1.0
 START_MAX_AMBIENT_C = 30.0     # random starts must be cooler than this ...
 START_MIN_CHARGER_DIST_M = 2.0  # ... and at least this far from the charger
@@ -95,17 +98,17 @@ def build_xml(scenario: Scenario, charger_radius: float = 0.6) -> str:
     <geom name="charger" type="cylinder" pos="{cx} {cy} 0.005" size="{charger_radius} 0.005"
           contype="0" conaffinity="0" rgba="0 .8 .2 .5"/>
     <body name="agent" pos="0 0 {AGENT_Z_M}">
-      <joint name="slide_x" type="slide" axis="1 0 0" damping="2.5"/>
-      <joint name="slide_y" type="slide" axis="0 1 0" damping="2.5"/>
-      <geom name="agent" type="cylinder" size="{AGENT_RADIUS_M} 0.1" mass="1"
+      <joint name="slide_x" type="slide" axis="1 0 0" damping="{SLIDE_DAMPING}"/>
+      <joint name="slide_y" type="slide" axis="0 1 0" damping="{SLIDE_DAMPING}"/>
+      <geom name="agent" type="cylinder" size="{AGENT_RADIUS_M} 0.1" mass="{AGENT_MASS_KG}"
             condim="1" rgba=".2 .4 .9 1"/>
       <site name="touch_site" type="cylinder" size="{AGENT_RADIUS_M + 0.02} 0.12"
             rgba="0 0 0 0"/>
     </body>
   </worldbody>
   <actuator>
-    <motor name="motor_x" joint="slide_x" gear="5" ctrllimited="true" ctrlrange="-1 1"/>
-    <motor name="motor_y" joint="slide_y" gear="5" ctrllimited="true" ctrlrange="-1 1"/>
+    <motor name="motor_x" joint="slide_x" gear="{MOTOR_GEAR}" ctrllimited="true" ctrlrange="-1 1"/>
+    <motor name="motor_y" joint="slide_y" gear="{MOTOR_GEAR}" ctrllimited="true" ctrlrange="-1 1"/>
   </actuator>
   <sensor>
     <touch name="touch" site="touch_site"/>
