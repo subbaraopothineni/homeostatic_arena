@@ -138,13 +138,23 @@ def main() -> None:
               "![sensitivity](fig_sensitivity.png)", ""]
     (args.out / "sensitivity.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+    plot_sensitivity(rows, upper, args.out / "fig_sensitivity.png")
+    print("\n".join(lines))
+
+
+def plot_sensitivity(rows: list[dict], upper: float, path: Path) -> None:
+    """Effect size and passing runs against the blend weight (rows may come from the CSV)."""
+    rows = [{**r, "w": float(r["w"]), "seed": int(r["seed"]), "mean": float(r["mean"]),
+             "counts": str(r["counts"]) == "True"} for r in rows]
+    summary = {w: (None, {h: sum(r["counts"] for r in rows if r["w"] == w and r["hypothesis"] == h)
+                          for h in HYPS}) for w in WEIGHTS}
     fig, axes = plt.subplots(1, 2, figsize=(10, 3.8), layout="constrained")
     for seed in range(5):
         pts = [(r["w"], r["mean"]) for r in rows if r["seed"] == seed and r["hypothesis"] == HYPS[0]]
         axes[0].plot(*zip(*pts), "o-", color=COLORS["FULL"], alpha=0.8, ms=5, lw=1.2)
     axes[0].axhline(upper, color=INK_2, lw=1.0)
-    axes[0].annotate("largest CI bound in the real data", (0.0, upper), xytext=(4, 4),
-                     textcoords="offset points", fontsize=8, color=INK_2)
+    axes[0].annotate("largest CI bound in the real data", (max(WEIGHTS), upper), xytext=(-4, -4),
+                     textcoords="offset points", ha="right", va="top", fontsize=8, color=INK_2)
     axes[0].set_xscale("symlog", linthresh=0.02)
     axes[0].set_xticks(list(WEIGHTS), [f"{w:g}" for w in WEIGHTS])
     axes[0].set_xlabel("blend weight w (fraction of the comparator mixed in)")
@@ -162,9 +172,8 @@ def main() -> None:
     axes[1].set_title("Pass rule needs ≥ 4 (line)", loc="left")
     axes[1].legend(loc="center right")
     fig.suptitle("POST-HOC: how sensitive is the pre-registered agency test?", color=INK)
-    fig.savefig(args.out / "fig_sensitivity.png", dpi=130)
+    fig.savefig(path, dpi=130)
     plt.close(fig)
-    print("\n".join(lines))
 
 
 if __name__ == "__main__":

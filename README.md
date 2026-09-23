@@ -515,6 +515,9 @@ docs/preregistration_v0.2.md, paper_draft.md
 tests/                  pytest suite
 results/                v0.1 outputs (30 seeds), seeds100/, literal_reflex/;
                         v02/ Study 2, v02b/ Study 2b, study1b/ Study 1b
+submission/             journal submission package for Artificial Life (start with
+                        submission/README.md and submission/CHECKLIST.md)
+requirements-lock.txt   exact package versions that produced all results
 ```
 
 ## References

@@ -1,5 +1,9 @@
 # DRAFT: Which behavioural markers of sentience and self-awareness can a simple mechanism fake? Controlled and pre-registered studies with homeostatic agents
 
+> **Superseded.** The current, expanded manuscript is `submission/build/manuscript.md`
+> (built into `submission/01_manuscript/Manuscript.docx`). This early draft is kept for
+> the record.
+
 *Working draft generated alongside the code. Author list, affiliations,
 funding and acknowledgements to be completed by the authors. All numbers are
 taken from the result files named in brackets; do not edit numbers by hand.*
