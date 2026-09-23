@@ -71,6 +71,56 @@ def test_reverses_heading_within_one_step_of_nociceptor(mode):
     assert agent.act(synthetic_obs(touch=1.0)) is not None and agent.last_rule == "wall"
 
 
+def _run_refractory(agent, obs):
+    for _ in range(ReflexAgent.REFRACTORY_STEPS):
+        agent.act(obs)
+        assert agent.last_rule == "refractory"
+
+
+def test_sustained_withdrawal_keeps_escaping_while_stimulus_persists():
+    agent = ReflexAgent("nociceptive", seed=0)            # default: sustained
+    hot = synthetic_obs(nociceptor=0.9)
+    first = agent.act(hot)
+    assert agent.last_rule == "withdraw"
+    _run_refractory(agent, hot)
+    again = agent.act(hot)                                 # still hot after refractory
+    assert agent.last_rule == "escape" and np.allclose(again, first)
+    agent.act(synthetic_obs(nociceptor=0.0))               # stimulus gone
+    assert agent.last_rule == "wander" and not agent.escaping
+
+
+def test_sustained_withdrawal_reverses_again_if_heat_keeps_rising():
+    agent = ReflexAgent("nociceptive", seed=0)
+    agent.act(synthetic_obs(nociceptor=0.9, ambient_c=50.0))
+    _run_refractory(agent, synthetic_obs(nociceptor=0.9, ambient_c=52.0))
+    moving = synthetic_obs(nociceptor=0.9, ambient_c=54.0)   # still getting hotter
+    moving[I["vel_x"]] = 0.5
+    action = agent.act(moving)
+    assert agent.last_rule == "withdraw" and action[0] < 0     # away from the motion
+
+
+def test_literal_withdrawal_flips_back_when_stimulus_persists():
+    agent = ReflexAgent("nociceptive", seed=0, withdrawal="literal")
+    hot = synthetic_obs(nociceptor=0.9)
+    first = agent.act(hot)
+    _run_refractory(agent, hot)
+    again = agent.act(hot)
+    assert agent.last_rule == "withdraw"
+    assert float(first @ again) < 0                        # reversed back again
+
+
+def test_sustained_withdrawal_reverses_actual_motion_not_heading():
+    # Heading points east, but the body is still moving west (velocity lags heading,
+    # e.g. right after a tumble). Withdrawal must send it east (away from the motion).
+    for style, expected_x_sign in [("sustained", +1), ("literal", -1)]:
+        agent = ReflexAgent("nociceptive", seed=0, withdrawal=style)
+        agent.heading = 0.0
+        obs = synthetic_obs(nociceptor=0.9)
+        obs[I["vel_x"]] = -0.6
+        action = agent.act(obs)
+        assert np.sign(action[0]) == expected_x_sign, style
+
+
 def test_thermal_trigger_logic():
     noci = ReflexAgent("nociceptive", seed=0)
     thermo = ReflexAgent("thermotactic", seed=0)
