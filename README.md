@@ -1,4 +1,4 @@
-# Homeostatic Arena v0.1
+# Homeostatic Arena (v0.1 + v0.2)
 
 ## Research question
 
@@ -9,8 +9,9 @@ trade-off), and becoming more cautious after harm (sensitization). **Do these
 markers actually discriminate between AI architectures of different
 complexity, or can a simple reflex pass them too?** v0.1 builds the arena, the
 body model, the marker tests and the *control conditions*: a random agent and
-two hard-wired reflex agents with no learning. Later versions add learning
-agents and compare them against this baseline.
+two hard-wired reflex agents with no learning. **v0.2** adds a learning agent
+and a pre-registered test of functional self/world and self/other
+distinction (see "Study 2" below).
 
 > **Disclaimer.** Everything here is a *functional analogue* of biology:
 > "nociceptor signal", "damage variable", "drive state". These are functional
@@ -34,7 +35,7 @@ source .venv/bin/activate
 ```
 
 ```bash
-pytest -q                                                   # 54 tests
+pytest -q                                                   # full test suite
 python -m experiments.run_baseline --seeds 30 --out results/  # ~45 s on a laptop CPU
 ```
 
@@ -238,6 +239,107 @@ reflexes use a "sustained" withdrawal instead:
 
 This is still memoryless apart from one step. See `agents/reflex.py`.
 
+## Study 2 (v0.2): functional self/world and self/other distinction (pre-registered)
+
+**Question.** Does an agent trained *only* on homeostatic drive reduction come to
+predict the consequences of its own actions better than identical
+consequences caused by another agent or by chance? This is the comparator
+("you can't tickle yourself") account of the sense of agency (von Holst &
+Mittelstaedt, 1950; Blakemore, Wolpert & Frith, 1998). The hypotheses,
+controls and pass rules were committed in
+[docs/preregistration_v0.2.md](docs/preregistration_v0.2.md) (commit `d70a2fe`)
+before any v0.2 code or data existed.
+
+**Design in brief.**
+- **World** (`arena/agency.py`):
+  - a heat lamp at the charger;
+  - a floor switch that toggles the lamp when *any* robot steps on it;
+  - a second, scripted robot;
+  - spontaneous lamp toggles;
+  - internal energy shocks.
+
+  New senses: the agent's previous motor command (efference copy), its previous reward, 8-direction heat "vision", a floor sense, and the other robot's position. Ground-truth `self` / `world` / `events` records (what, where, cause, body affected) are logged but never shown to the agent.
+- **Learning agent FULL** (`agents/recurrent.py`): GRU memory plus a forward model that predicts the next observation. Trained with PPO on drive reduction plus a self-supervised prediction loss, 3 M steps, 5 seeds.
+- **Variants:** NOEFF (no efference copy) and NOFWD (no prediction training), 3 seeds each.
+- **Controls:**
+  - UNTRAINED (random weights);
+  - NO-CHANGE (predicts that nothing changes);
+  - COMPARATOR (hand-built self-predictor; the positive control);
+  - POSITION RULE ("I'm on the switch, so I did it");
+  - the v0.1 reflex.
+- **Main test (T2):** the same lamp change, caused by SELF, OTHER or SPONTaneously, with matched movement. The measure is the relative prediction error (relPE) at the change: 0 = fully predicted, 1 = not predicted.
+
+**Pre-registered results** ([results/v02/report.md](results/v02/report.md)):
+
+| Hypothesis | FULL runs passing (need ≥ 4/5) | Verdict |
+|---|---|---|
+| H1 self-caused changes are predicted better | 0/5 | **not supported** |
+| H2 surprise when its own action has no effect | 0/5 | **not supported** |
+| H3a self-motion blinding hurts self-prediction specifically | 0/5 | **not supported** |
+| H3b other-blinding hurts other-prediction specifically | 0/5 (4 n/a) | not applicable (no other-prediction) |
+
+**Validity checks passed, so the test itself works:**
+- **V1:** random networks did not pass.
+- **V2:** the hand-built COMPARATOR passed: relPE 0.004 for SELF vs 1.03 for SPONT, rising to 0.92 when self-blinded.
+- **V3:** the position shortcut misattributed 100% of the "on the switch, but someone else did it" trials.
+
+| relPE at the lamp change | SELF | OTHER | SPONT |
+|---|---|---|---|
+| FULL (mean of 5 runs) | 0.996 | 0.994 | 0.994 |
+| COMPARATOR | 0.004 | 1.021 | 1.030 |
+| NO-CHANGE | 1.000 | 1.000 | 1.000 |
+
+**What happened.** The trained agents **did not learn to predict lamp changes
+at all**, whatever caused them. So there was no self-prediction advantage to
+find.
+
+The likely reason is that self-caused changes were almost absent from their
+experience. In 250 free-running episodes the agents stepped on the switch
+**26 times**, against 1,378 entries by the other robot and 638 spontaneous
+toggles. Lamp changes are also under 1% of time steps, so a generic "predict
+the next observation" objective gains little from modelling them.
+
+Four runs passed the competence gate (their prediction beat "no change"
+overall). One FULL run and all NOEFF runs failed it. Four FULL runs learned to
+survive (40–90% of episodes lasted the full 60 s).
+
+**The tests pre-registered as "expected to be fooled" were fooled:**
+- **Body vs world:** the share of surprise on body channels after an internal shock was 0.96 for NO-CHANGE and 0.86 for FULL. Separate sense channels make this trivial.
+- **Decoding "who caused it" from internal state:** 100% accuracy for trained networks, **untrained networks and raw inputs alike**. Decodability is not evidence of self-awareness without these baselines.
+- **Single runs are unreliable:** random networks produced "significant" single-run effects in 3 of 15 tests, which is why the multi-run pass rule matters.
+
+**Exploratory follow-up, not pre-registered** ([results/v02/exploratory.md](results/v02/exploratory.md)).
+The question here is whether the agent predicts how its *own movement* changes
+what it senses: the heat "vision" shifting as it walks, which is reafference in
+von Holst's sense.
+- Freezing the agent's self-motion signals made these predictions worse in 4 of 5 FULL runs (e.g. 1.66 → 2.50 × the no-change error).
+- Freezing the other robot's signals changed nothing (1.66 → 1.66).
+
+So the predictions *use* self-motion information specifically. But they still
+did not beat "nothing changes" in absolute terms. This is weak,
+hypothesis-generating evidence, not a finding.
+
+**Bottom line.** We have a self/other test that is **not fooled** by random
+networks or a position shortcut, and that **detects** the comparator mechanism
+when it is present. A standard learning agent did **not** develop that
+mechanism under the pre-registered training. A follow-up must be
+pre-registered separately before running. Candidates:
+- more frequent self-caused events;
+- a prediction loss that is not swamped by easy channels;
+- a world-model agent.
+
+**Run it:**
+
+```bash
+PY=python bash experiments/train_all.sh                 # 16 runs, ~2 h on 14 CPU threads
+python -m experiments.run_v02 --models results/v02/models --out results/v02
+python -m experiments.explore_v02                        # exploratory follow-up
+```
+
+PyTorch (CPU build) is needed for v0.2: `pip install torch --index-url https://download.pytorch.org/whl/cpu`.
+On WSL, put the virtual environment in the Linux home directory (e.g.
+`~/venvs/homeostatic_arena`). PyTorch's long file paths fail on `/mnt/c`.
+
 ## Deviations from the design brief (and why)
 
 1. **Trade-off wall 58 °C / σ 0.35 m → 60 °C / σ 0.5 m.** The design check showed
@@ -290,11 +392,19 @@ This is still memoryless apart from one step. See `agents/reflex.py`.
   agent that wanders first cannot survive it, whatever it "prefers".
 * Reflex parameters (speed 0.8, thresholds, refractory 10 steps) were not tuned;
   other reasonable settings could change the numbers.
+* v0.2 uses one training budget and untuned hyperparameters (fixed in advance).
+  Five runs per variant is small. The other robot is scripted, not learning.
+  Lamp changes are rare events, so the generic prediction loss may simply be
+  the wrong objective for learning them. That is a limitation of this agent,
+  not a verdict on learning agents in general.
 
 ## Roadmap
 
-* **v0.2**: homeostatic RL agent (PPO, Stable-Baselines3) trained only on the
-  drive-reduction reward.
+* **v0.2 (done)**: homeostatic RL agent trained only on drive reduction (custom
+  recurrent PPO in PyTorch rather than Stable-Baselines3, to add a forward-model
+  head), with the pre-registered self/other study above.
+* **v0.2b (next)**: a separately pre-registered follow-up that makes self-caused
+  events common and keeps easy channels from swamping the prediction loss.
 * **v0.3**: world-model agent (DreamerV3).
 * **v0.4**: legged body; wound-protection marker; ablations.
 * **Later**: LLM-brained agent vs. from-scratch agent; calibration against human
@@ -310,8 +420,14 @@ agents/                 random agent, reflex agents (make_agent)
 experiments/markers.py  marker tests, statistics, trade-off design check
 experiments/plots.py    figures
 experiments/run_baseline.py
+arena/agency.py         v0.2 agency world (lamp, switch pad, other robot, events)
+agents/recurrent.py     v0.2 learning agent (GRU + forward model)
+experiments/train_agent.py, train_all.sh     v0.2 training
+experiments/agency_tests.py, run_v02.py      v0.2 pre-registered tests and verdicts
+experiments/explore_v02.py                   v0.2 exploratory follow-up
+docs/preregistration_v0.2.md, paper_draft.md
 tests/                  pytest suite
-results/                generated outputs (30 seeds), seeds100/, literal_reflex/
+results/                v0.1 outputs (30 seeds), seeds100/, literal_reflex/; v02/ for Study 2
 ```
 
 ## References
@@ -333,3 +449,11 @@ Also cited in code comments:
 * Caterina, M. J., et al. (1997). The capsaicin receptor: a heat-activated ion channel in the pain pathway. *Nature* 389:816–824.
 * Wittenburg, N. & Baumeister, R. (1999). Thermal avoidance in *Caenorhabditis elegans*: an approach to the study of nociception. *PNAS* 96:10477–10482.
 * Berg, H. C. & Brown, D. A. (1972). Chemotaxis in *Escherichia coli* analysed by three-dimensional tracking. *Nature* 239:500–504.
+
+Added for v0.2 (checked by web search on 2026-09-22):
+
+* von Holst, E. & Mittelstaedt, H. (1950). Das Reafferenzprinzip. *Naturwissenschaften* 37:464–476.
+* Blakemore, S.-J., Wolpert, D. M. & Frith, C. D. (1998). Central cancellation of self-produced tickle sensation. *Nature Neuroscience* 1:635–640.
+* Schulman, J., Wolski, F., Dhariwal, P., Radford, A. & Klimov, O. (2017). Proximal policy optimization algorithms. arXiv:1707.06347.
+* Todorov, E., Erez, T. & Tassa, Y. (2012). MuJoCo: a physics engine for model-based control. *IROS 2012*.
+* Birch, J. (2024). *The Edge of Sentience: Risk and Precaution in Humans, Other Animals, and AI.* Oxford University Press.

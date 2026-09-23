@@ -204,3 +204,20 @@ Negative results will be reported with the same prominence as positive ones.
 ## Deviations
 
 *(none yet)*
+
+**Added after the analysis (2026-09-22). The text above is unchanged since registration.**
+
+1. **Training length.** Each run trained for 2,998,272 environment steps (1,464 rollouts of 2,048 steps; integer division) instead of exactly 3,000,000. The budget was not otherwise changed.
+2. **NOEFF implementation.** "Efference-copy inputs always zero" was implemented as zeroing both the previous-action observation channels and the forward model's current-action input.
+3. **Ablation details.** Self-blind and other-blind freeze the listed observation channels at the last warm-up observation. The forward model's current-action input is not frozen, because it is not an observation channel.
+4. **Exploratory probes.**
+   - The "what" probe (T1 trials) uses lags 1 and 9, because T1 trials end 10 steps after the event.
+   - No separate body_affected probe: in T1 it is identical to the event-type label.
+   - No lag-40 probe for T1.
+   - The probe's ridge penalty (10⁻³) was set on synthetic data before any real data were analysed.
+5. **Descriptive attribution rule.** "Self" if relPE < 0.5 was added for reporting. It is not used in any verdict.
+6. **Exploratory follow-up.** After the pre-registered results were known, two analyses were added to understand the negative result:
+   - reafference on NOEVENT trials, with a self-blind and an other-blind control;
+   - how often each cause toggled the lamp.
+
+   They are reported separately in `results/v02/exploratory.md` and labelled exploratory everywhere.

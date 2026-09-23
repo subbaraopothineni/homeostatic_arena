@@ -4,7 +4,7 @@
 funding and acknowledgements to be completed by the authors. All numbers are
 taken from the result files named in brackets; do not edit numbers by hand.*
 
-## Abstract (to be finalised after Study 2)
+## Abstract
 
 Behavioural markers are increasingly proposed as evidence of sentience or
 self-awareness in non-human systems, including AI. A marker is only
@@ -26,7 +26,24 @@ actions better than identical consequences caused by another agent or by
 chance (the comparator account of agency). We tested the specificity of this
 with a double dissociation (freezing self-motion versus other-agent signals),
 and against untrained, no-change and hand-built comparator controls.
-[Results: `results/v02/report.md`.]
+
+The test was valid:
+- a hand-built comparator passed;
+- random networks did not;
+- a position shortcut failed the dissociation trials.
+
+However, none of five trained agents passed any pre-registered hypothesis.
+Their forward models did not predict the lamp changes at all, whatever the
+cause, and self-caused changes were rare in their experience. Tests
+pre-registered as vulnerable were indeed passed by trivial controls. Body
+versus world was separated as well by a no-change predictor as by the agent,
+and "who caused it" was decodable at ceiling from untrained networks and raw
+inputs.
+
+We conclude that behavioural and decoding markers of sentience and
+self-awareness must be benchmarked against minimal mechanisms. Prediction-based
+self/other tests can be made robust to such mechanisms, but a generic learning
+agent need not acquire what they measure.
 
 ## 1. Introduction (outline)
 
@@ -154,10 +171,50 @@ baseline.
 - **Sensitization has a built-in positive bias.** Memoryless agents scored +9.95 °C [7.16, 12.87] (random) and +8.77 °C [6.14, 11.43] (nociceptive reflex) at 100 seeds, because all "before" encounters are non-harmful by construction. A like-for-like variant was ≈ 0.
 - **Survival separates competent from random agents,** not reflex from learner (reflexes 0.70–0.83 vs random 0.23).
 
-### 3.2 Study 2 [`results/v02/report.md`]
+### 3.2 Study 2 [`results/v02/report.md`, `results/v02/*.csv`]
 
-*To be written from the generated report after the pre-registered analysis
-has run.*
+**Training.**
+- All trained runs completed 2,998,272 steps.
+- Four of five FULL runs learned to survive: 40–90% of held-out 60 s episodes survived, against 15% for FULL seed 4.
+- Four FULL runs passed the competence gate: prediction error 0.47–0.69 × no-change. FULL seed 4 (1.18) and all NOEFF runs (1.63–1.98) failed it (Fig. training).
+
+**Pre-registered hypotheses.** None was supported (Table 1; Fig. hypotheses):
+- H1 (self-prediction): 0/5 FULL runs. Effects ranged from −0.004 to 0.001, and every CI included 0.
+- H2 (omission surprise): 0/5.
+- H3a (self-blind specificity): 0/5.
+- H3b: not applicable in 4/5 runs, because relPE(OTHER) did not fall below relPE(SPONT).
+
+At the lamp change, the FULL agents' relative prediction error was ≈ 1 in
+every condition (SELF 0.996, OTHER 0.994, SPONT 0.994, OTHER-ONPAD 1.002,
+SPONT-ONPAD 1.001). The forward models therefore did not predict lamp changes
+at all, rather than predicting all causes equally well (Fig. relPE).
+
+**Validity checks.**
+- **V1 passed:** UNTRAINED met no hypothesis in ≥ 4/5 runs.
+- **V2 passed:** COMPARATOR relPE was 0.004 for SELF vs 1.030 for SPONT; H1 effect 1.026 [1.011, 1.040]; self-blinding raised relPE(SELF) to 0.924.
+- **V3:** the POSITION RULE attributed 100% of OTHER-ONPAD and SPONT-ONPAD changes to itself.
+
+Random networks produced "significant" single-run effects in 3 of 15
+hypothesis tests. This shows the need for the multi-run pass rule.
+
+**Why no self-prediction?** The ecological check indicates that self-caused
+lamp changes were almost absent from the agents' experience. In 250
+free-running episodes the agents entered the pad 26 times, against 1,378
+entries by the other robot and 638 spontaneous toggles. With lamp changes
+under 1% of time steps, a next-observation loss averaged over all channels
+provides little pressure to model them.
+
+**Tests expected to be fooled (T1, probes).**
+- **Body vs world.** The share of prediction error on body channels after an internal shock was 0.96 for NO-CHANGE and 0.86 for FULL (0.00–0.08 for world events). Dedicated channels make the distinction trivial.
+- **FULL behaviour after the events** did not differ by condition (+4.97 to +4.99 m toward the charger).
+- **Probes.** Linear probes decoded "who caused the lamp change" at 100% at lags 1–40 steps from FULL, UNTRAINED and raw-input features alike. Event type ("what") was decoded at 0.59–0.74 by all three (chance 0.33). Decodability therefore gave no evidence beyond the raw input.
+
+**Exploratory (not pre-registered).**
+- **Setting:** thermal predictions while walking with no lamp change.
+- **Self-blinding** increased FULL prediction error in 4/5 runs, e.g. 1.66 → 2.50 × no-change.
+- **Other-blinding control:** no effect (1.66 → 1.66).
+- **Absolute accuracy:** prediction error stayed above the no-change error (ratio 1.47–3.11).
+- **Reading:** the agents' distal predictions depend specifically on self-motion signals, without being accurate. This is hypothesis-generating only (`results/v02/exploratory.md`).
 
 ## 4. Additional methodological findings
 
@@ -178,18 +235,56 @@ markers look more discriminating than they are. We used a memoryless fix
 (reverse the actual motion; keep escaping while the heat falls) and report
 both versions (`results/literal_reflex/`).
 
-## 5. Discussion (outline; complete after Study 2)
+## 5. Discussion
 
-- Markers that can be met by a distal sensor plus a one-step rule (anticipation) should not count as evidence beyond a reflex arc.
-- Trade-off and sensitization were not passed by any reflex. They are candidates for discriminating markers, but their metrics need care (opportunity confound; selection bias).
-- Study 2: what the self-prediction and dissociation results show, and do not show, about functional self/other distinction.
-- Scope: functional measurements only. No claim about subjective experience.
-- Limitations:
-  - a disc body with no limbs;
-  - a single environment;
-  - a small number of training runs;
-  - hyperparameters that were not tuned;
-  - a scripted other robot.
+**Markers must be benchmarked against minimal mechanisms.** Across both
+studies, the markers most often proposed as accessible evidence of richer
+processing were met by trivial mechanisms:
+- anticipatory avoidance, by a one-step thermotactic reflex;
+- body-versus-world discrimination, by a no-change predictor with dedicated interoceptive channels;
+- "self/other" information in internal states, by untrained networks and raw inputs.
+
+None of these results says that anticipation or internal representations are
+irrelevant to sentience or self-awareness. They say that such observations
+carry no evidential weight *unless* the minimal mechanisms fail them. This
+parallels the gaming problem discussed for AI sentience (Birch 2024), and it
+is directly testable in artificial agents.
+
+**Tests can be made robust.** The pre-registered agency test was not fooled:
+- it detected a known comparator mechanism;
+- it rejected random networks;
+- it defeated a position shortcut.
+
+Its dissociation logic (freezing self-motion versus other-agent signals) adds
+causal, not merely correlational, evidence about which signals a prediction
+depends on.
+
+**A generic learning agent did not acquire the measured mechanism.** Survival
+training plus a generic next-observation loss produced agents that predicted
+dense, frequent changes but not rare, discrete consequences of their own
+actions. A negative result under pre-registration is informative. It warns
+against assuming that self-models emerge "for free" from homeostatic training,
+and it identifies concrete conditions to test next:
+- self-caused events made frequent or behaviourally relevant;
+- prediction objectives not dominated by easy channels;
+- world-model agents.
+
+The exploratory finding that distal predictions depend specifically on
+self-motion signals suggests a partial, inaccurate use of self-information. A
+separately pre-registered follow-up should test it.
+
+**Scope.** All results are functional. Nothing here bears on whether any agent
+has subjective experience. Passing or failing these tests is evidence about
+mechanisms, not about feelings.
+
+**Limitations.**
+- a disc body with no limbs;
+- a single environment per study;
+- five training runs per variant and one fixed, untuned training budget;
+- a scripted (non-learning) other robot;
+- a forward model trained with an unweighted mean-squared loss.
+
+A different agent or objective could produce a different result.
 
 ## 6. Data and code availability
 
