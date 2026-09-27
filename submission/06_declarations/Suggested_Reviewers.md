@@ -32,6 +32,10 @@ field and any conflict before suggesting them.
 | Motivational trade-offs in animals | Elwood & Appel (2009); Sneddon et al. (2014) | Robert W. Elwood; Lynne U. Sneddon |
 | AI consciousness indicators | Butlin et al. (2023) | Patrick Butlin; Robert Long |
 | Self-modelling robots | Bongard et al. (2006) | Josh Bongard |
+| Minimal agents, homeostatic adaptation, agency (artificial life) | Di Paolo (2000); Barandiaran et al. (2009); Egbert et al. (2012) | Ezequiel Di Paolo; Xabier Barandiaran; Matthew Egbert |
+| Minimally cognitive evolved agents | Beer (1996) | Randall Beer |
+| Sentience criteria and frameworks | Birch et al. (2021); Crump et al. (2022) | Andrew Crump; Jonathan Birch |
+| Sense of agency | Synofzik et al. (2008) | Matthis Synofzik |
 
 ## Form fields
 

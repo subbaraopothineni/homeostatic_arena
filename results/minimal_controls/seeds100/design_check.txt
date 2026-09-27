@@ -1,0 +1,15 @@
+Trade-off design check (wall 60 C, sigma 0.5 m; agent speed 1.6 m/s; E_low=0.08, E_high=0.9)
+  direct route : 5.40 m, 3.77 s, energy 0.069, damage 0.183  (at 2.0 m/s: energy 0.068, damage 0.103)
+  detour route : 9.26 m, 6.19 s, energy 0.114, damage 0.000; energy lower bound at any speed 0.101; max ambient on path 45.0 C
+  simulated direct@low  : reached=True  died=False t=3.80s energy=0.023 damage=0.202
+  simulated detour@low  : reached=False died=True  t=4.35s energy=0.000 damage=0.000
+  simulated detour@high : reached=True  died=False t=6.80s energy=0.787 damage=0.000
+  simulated direct@high : reached=True  died=False t=3.80s energy=0.843 damage=0.202
+  [PASS] A_direct_survivable_at_low
+  [PASS] B_detour_impossible_at_low
+  [PASS] C_detour_survivable_at_high
+  [PASS] D_crossing_costs_damage
+  [PASS] sim_direct_low_reaches
+  [PASS] sim_detour_low_fails
+  [PASS] sim_detour_high_reaches
+  => design OK

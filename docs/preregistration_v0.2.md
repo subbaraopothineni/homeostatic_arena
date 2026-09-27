@@ -221,3 +221,8 @@ Negative results will be reported with the same prominence as positive ones.
    - how often each cause toggled the lamp.
 
    They are reported separately in `results/v02/exploratory.md` and labelled exploratory everywhere.
+
+**Added 2026-09-26 (post-hoc analyses, not part of the registration; no verdict changes).**
+
+7. **Heat-channel competence.** The gate ratio was recomputed on the eight heat channels only, on the same 20 held-out episodes (`experiments/thermal_competence.py`, `results/thermal_competence/`). All FULL runs were at 0.98–1.01 × NO-CHANGE on these channels.
+8. **Imprecise self-model.** The sensitivity analysis was repeated with a comparator whose timing (pad-edge error) and gain are perturbed per trial (`experiments/sensitivity_noisy.py`, `results/v02/sensitivity_noisy.md`).

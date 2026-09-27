@@ -1,0 +1,6 @@
+agent,approaches,crossed,cross_0.0_0.25,cross_0.25_0.5,cross_0.5_1.01,slope,slope_ci_low,slope_ci_high
+random,302,140,57/133,43/87,40/82,0.5412217147044366,-0.31007952825455487,1.4456679940793278
+reflex_nociceptive,790,0,0/356,0/277,0/157,nan,nan,nan
+reflex_thermotactic,1195,0,0/660,0/376,0/159,nan,nan,nan
+reflex_motivational,967,231,231/414,0/384,0/169,-20.80828463907518,-25.75347048567377,-17.388838052061402
+reflex_sensitizing,1187,0,0/663,0/364,0/160,nan,nan,nan

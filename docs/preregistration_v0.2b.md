@@ -129,3 +129,8 @@ No claim about subjective experience will be made from any outcome.
    - the Study 2b strategy analysis;
    - the reafference check;
    - for Study 1b, a comparison of deterministic and stochastic policies on the foraging world (`results/study1b/exploratory.md`).
+
+**Added 2026-09-26 (post-hoc analyses, not part of the registration; no verdict changes).**
+
+4. **Minimal controls for the Study 1 markers.** Two control agents were added after all results were known: a motivational reflex (withdrawal vetoed while energy < 0.2) and a sensitizing reflex (one bit of state set by harm) (`agents/minimal.py`, `results/minimal_controls/`). A decision-time analysis of the trade-off was also added (`experiments/tradeoff_decision.py`).
+5. **Heat-channel competence** was computed for the Study 2b runs as well (`results/thermal_competence/`).

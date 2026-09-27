@@ -1,7 +1,7 @@
 # Submission package: *Artificial Life* (MIT Press)
 
-**Paper:** "Which Behavioural Markers of Sentience and Self-Awareness Can a Simple Mechanism
-Fake? Pre-Registered Tests With Homeostatic Agents"
+**Paper:** "Behavioural Markers of Sentience Are Met by Minimal Mechanisms: Validated and
+Pre-Registered Tests With Homeostatic Agents"
 
 This folder holds everything needed to submit the paper. The parts that only you can supply
 are marked **`[FILL: …]`**, highlighted in yellow in the Word files, and listed in
@@ -27,8 +27,8 @@ Society for Artificial Life).
 
 | Requirement | In this package |
 |---|---|
-| Article length: 6,000–12,000 words | The main text is 6,460 words (Introduction to Conclusion) |
-| An abstract covering what was done, why, how, the findings and the outcome | 246 words, with no citations |
+| Article length: 6,000–12,000 words | The main text is 7,379 words (Introduction to Conclusion) |
+| An abstract covering what was done, why, how, the findings and the outcome | 250 words, with no citations |
 | 5–6 keywords | 6, on the title page |
 | APA 7th edition citations and references | Throughout |
 | The whole manuscript single-column and double-spaced, including abstract, references and captions | `01_manuscript/Manuscript.docx` (tables are single-spaced for readability) |
@@ -43,12 +43,12 @@ Society for Artificial Life).
 | Folder or file | Contents | Upload? |
 |---|---|---|
 | `CHECKLIST.md` | Everything you must provide or do, in order | — |
-| `01_manuscript/Manuscript.docx` | The complete manuscript: title page, abstract, text, 6 tables, 7 embedded figures with captions and alt text, declarations, references. Line-numbered and double-spaced. | **Yes** (as a PDF; see the checklist) |
+| `01_manuscript/Manuscript.docx` | The complete manuscript: title page, abstract, text, 7 tables, 7 embedded figures with captions and alt text, declarations, references. Line-numbered and double-spaced. | **Yes** (as a PDF; see the checklist) |
 | `02_figures/Figure1–7.pdf / .png` | High-resolution figure files (vector and 600 dpi) | **Yes**, if the form asks for separate figure files |
 | `03_cover_letter/Cover_Letter.docx` | Cover letter and one-page extended abstract | **Yes** |
 | `04_supplementary/Supplementary_Material.docx` | Pre-registrations (verbatim), full generated reports, design checks, sensitivity analyses, extra tables, version history, reproduction commands | **Yes**, as supplementary material |
 | `05_code_and_data/` | Code-and-data zip, git-history bundle, citation template, and a guide to getting a DOI | Publish on GitHub/Zenodo; put the link in the paper |
-| `06_declarations/` | Paste-ready text for every form field; suggested-reviewers template | Paste into the form |
+| `06_declarations/` | Paste-ready text for every form field; suggested-reviewers template; draft pre-submission inquiry to the editors | Paste into the form; send the inquiry first (optional) |
 | `07_preprint_arxiv/` | Preprint version, plain-text abstract, arXiv guide | Optional |
 | `build/` | The scripts that produced all of the above | No |
 

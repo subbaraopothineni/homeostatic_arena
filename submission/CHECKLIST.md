@@ -39,9 +39,10 @@ fully responsible for every claim, so do the following before you submit.
   - Study 1: `results/summary.csv` and `results/seeds100/summary.csv`;
   - Study 2: `results/v02/report.md`, `exploratory.md` and `sensitivity.md`;
   - Study 2b: `results/v02b/report.md`;
-  - Study 1b: `results/study1b/report.md`.
+  - Study 1b: `results/study1b/report.md`;
+  - post-hoc analyses: `results/minimal_controls/` (the two minimal controls and `tradeoff_decision.md`), `results/thermal_competence/thermal_competence.md` and `results/v02/sensitivity_noisy.md`.
 - [ ] **C3. Check the references.** Open each DOI, and confirm the authors, year, title and journal. They were checked online on 23 September 2026. Pay particular attention to Solms et al. (2026), which has no DOI in the list; add one if the journal page shows it.
-- [ ] **C4. Re-run something yourself.** At minimum, run `python -m pytest` (86 tests) and `python -m experiments.run_baseline --seeds 30 --out /tmp/check` (about a minute; it reproduces Study 1). Compare the output with `results/summary.csv`.
+- [ ] **C4. Re-run something yourself.** At minimum, run `python -m pytest` (90 tests) and `python -m experiments.run_baseline --seeds 30 --out /tmp/check` (about a minute; it reproduces Study 1). Compare the output with `results/summary.csv`.
 - [ ] **C5. Open the Word files** (`Manuscript.docx`, `Cover_Letter.docx`, `Supplementary_Material.docx`) and look through every page. The files pass Office-schema validation, but they could not be rendered on this machine. Check that:
   - figures appear near their first mention;
   - tables fit the page;
@@ -49,6 +50,10 @@ fully responsible for every claim, so do the following before you submit.
 - [ ] **C6. Extended abstract length.** The cover letter's extended abstract must fit on **one page**. If it runs over, shorten it.
 - [ ] **C7. Read the official guidelines page yourself:** https://direct.mit.edu/artl/pages/submission-guidelines. The page blocks automated access, so the requirements in `README.md` were assembled from search summaries and the official Overleaf template. Look for anything new: blinding, file types, statements.
 - [ ] **C8. No `FILL` left** in any file you upload (Ctrl+F `FILL`).
+
+## D0. Optional: ask the editors first
+
+Send the pre-submission inquiry in `06_declarations/Presubmission_inquiry_email.md` (fill it in and send it yourself). It states the AI use and your independent status openly and asks whether the paper suits the journal. Wait for the reply before submitting.
 
 ## D. Submitting on ScholarOne
 

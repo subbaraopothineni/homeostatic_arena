@@ -30,6 +30,9 @@ AGENT_COLORS = {
     # Literal-withdrawal variants (run separately; validated as their own pair).
     "reflex_nociceptive_literal": "#e87ba4",
     "reflex_thermotactic_literal": "#4a3aa7",
+    # Post-hoc minimal controls (agents/minimal.py).
+    "reflex_motivational": "#c28e0e",
+    "reflex_sensitizing": "#7a5af5",
 }
 AGENT_LABELS = {
     "random": "Random",
@@ -37,6 +40,8 @@ AGENT_LABELS = {
     "reflex_thermotactic": "Reflex\n(thermotactic)",
     "reflex_nociceptive_literal": "Literal reflex\n(nociceptive)",
     "reflex_thermotactic_literal": "Literal reflex\n(thermotactic)",
+    "reflex_motivational": "Motivational\nreflex",
+    "reflex_sensitizing": "Sensitizing\nreflex",
 }
 LEARNED_COLOR = "#4a3aa7"     # Study 1b learning agents (all seeds share the entity colour)
 INK = "#0b0b0b"

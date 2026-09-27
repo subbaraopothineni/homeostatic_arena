@@ -402,14 +402,31 @@ So the "positive group" is still missing. We cannot yet say whether
 trade-off or sensitization *discriminate* architectures, only that no
 reflex, random agent or (this) learning agent passes them.
 
+## Post-hoc analyses (added 2026-09-26, after all pre-registered studies)
+
+These analyses were added in response to a critical review of the draft
+paper. They are labelled post hoc everywhere.
+
+- **Minimal controls** (`agents/minimal.py`, `results/minimal_controls/`):
+  - The *motivational reflex* is the thermotactic reflex with its withdrawal vetoed while energy < 0.2 (no memory).
+  - The *sensitizing reflex* is the nociceptive reflex plus one bit of state set by harm.
+  - The sensitizing reflex passes sensitization: −3.16 °C [−4.81, −1.58] at 100 seeds, on both versions of the metric.
+- **Trade-off at the moment of decision** (`experiments/tradeoff_decision.py`):
+  - The motivational reflex *fails* the pre-specified trade-off score (−0.47), because energy drains during the episode and it crosses late in high-energy episodes.
+  - Scored per approach to the wall, it crosses on 56% of approaches begun with energy < 0.25 and on none begun above it (slope −20.8 [−25.8, −17.4]).
+- **Heat-channel competence** (`experiments/thermal_competence.py`): the competence gate was passed on the easy channels. On the eight heat channels the test scores, all trained agents were at 0.98–1.03 × NO-CHANGE.
+- **Imprecise self-model** (`experiments/sensitivity_noisy.py`): with a per-trial pad-edge error of σ = 0.05, 0.1 and 0.2 m, H1 needs a blend of 5%, 10% and 25% instead of 2%.
+
 ## The overall picture so far
 
 | Finding | Evidence |
 |---|---|
 | Anticipatory avoidance is passed perfectly by a one-step reflex | Study 1 |
+| Trade-off is met by a single energy threshold, and sensitization by one bit of state; the pre-specified trade-off score misses the genuine trade-off | Study 1 minimal controls (post hoc) |
 | Body-vs-world and "who caused it" read-outs are passed by trivial controls (no-change predictor, untrained networks, raw inputs) | Study 2, Study 2b |
 | The sensitization metric carries a large built-in bias (+9 to +10 °C for memoryless agents) | Study 1, 100 seeds |
-| The pre-registered self/other test is **valid** (detects a known mechanism, rejects random networks and a position shortcut) and **sensitive** (2% self-prediction) | Studies 2, 2b, sensitivity |
+| The pre-registered self/other test is **valid** (detects a known mechanism, rejects random networks and a position shortcut) and **sensitive** (2% self-prediction with exact timing; 5–25% with imprecise timing) | Studies 2, 2b, sensitivity |
+| The trained agents' forward models were no better than "no change" on the heat channels the test scores | Heat-channel competence (post hoc) |
 | Generic homeostatic learning agents did **not** acquire self-prediction, in either world | Studies 2, 2b |
 | **The bottleneck is the agents' learning, not the tests.** Agents free-ride when they can (Study 2), fail to discover a necessary action (Study 2b), and can settle into doing nothing (Study 1b) | Studies 1b, 2, 2b |
 
@@ -509,6 +526,9 @@ experiments/train_agent.py, train_all.sh     v0.2 training
 experiments/agency_tests.py, run_v02.py      v0.2 pre-registered tests and verdicts
 experiments/explore_v02.py                   v0.2 exploratory follow-up
 experiments/sensitivity_v02.py               post-hoc sensitivity of the agency test
+experiments/sensitivity_noisy.py             post-hoc sensitivity with an imprecise self-model
+experiments/thermal_competence.py            post-hoc forward-model competence on the heat channels
+agents/minimal.py, experiments/tradeoff_decision.py   post-hoc minimal controls, decision-time trade-off
 experiments/necessity_check.py               Study 2b design check (waiter vs switcher)
 arena/study1.py, experiments/report_study1b.py, explore_study1b.py   Study 1b
 docs/preregistration_v0.2.md, paper_draft.md

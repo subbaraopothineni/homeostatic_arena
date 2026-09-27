@@ -8,7 +8,7 @@ your decision, and it is not required for submission.
 | File | Use |
 |---|---|
 | `Preprint.docx` | The manuscript without line numbers and at 1.15 spacing. Fill in the same `[FILL]` values as the manuscript, then save as PDF. |
-| `abstract_plain.txt` | The abstract as plain text (1,715 characters; arXiv's limit is 1,920), for the arXiv abstract field. |
+| `abstract_plain.txt` | The abstract as plain text (about 1,700 characters; arXiv's limit is 1,920), for the arXiv abstract field. |
 
 ## 1. Check the journal's preprint policy first
 
@@ -65,6 +65,6 @@ Read the whole paper and verify every number and reference before posting (see
    - choose the licence and the primary category;
    - upload the PDF;
    - enter the metadata: title, authors and the abstract from `abstract_plain.txt`.
-3. **Comments** field, for example: "<N> pages, 7 figures, 6 tables. Submitted to Artificial Life. Code and data: <URL/DOI>".
+3. **Comments** field, for example: "<N> pages, 7 figures, 7 tables. Submitted to Artificial Life. Code and data: <URL/DOI>".
 4. Check the preview and submit. The paper normally appears within one or two working days.
 5. Add the arXiv link to the cover letter and to the submission form.

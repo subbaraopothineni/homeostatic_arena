@@ -14,8 +14,8 @@ const HERE = __dirname;
 const ROOT = path.resolve(HERE, "..", "..");
 const SUB = path.resolve(HERE, "..");
 const EMBED = path.join(HERE, "embed");
-const TITLE = "Which Behavioural Markers of Sentience and Self-Awareness Can a Simple Mechanism Fake? " +
-              "Pre-Registered Tests With Homeostatic Agents";
+const TITLE = "Behavioural Markers of Sentience Are Met by Minimal Mechanisms: " +
+              "Validated and Pre-Registered Tests With Homeostatic Agents";
 
 const read = (p) => fs.readFileSync(p, "utf8").replace(/\r/g, "");
 
@@ -39,6 +39,7 @@ function metricTable(file, agents, metrics) {
   const fmt = (r, signed) => {
     if (!r || r.n === "0") return "n/a";
     const f = (x) => (signed && Number(x) > 0 ? "+" : "") + Number(x).toFixed(2);
+    if (!Number.isFinite(Number(r.ci_low))) return `${f(r.mean)} (n = ${r.n}; no interval)`;
     return `${f(r.mean)} [${Number(r.ci_low).toFixed(2)}, ${Number(r.ci_high).toFixed(2)}] (n = ${r.n})`;
   };
   const lines = [`| Metric | ${agents.map((a) => a[1]).join(" | ")} |`, `|---|${agents.map(() => "---").join("|")}|`];
@@ -64,6 +65,7 @@ function study1Tables() {
     energy.push([`crossing_rate@${e}`, `Crossed the wall, start energy ${e}`]);
     energy.push([`reached_charger@${e}`, `Reached the charger, start energy ${e}`]);
   }
+  const minimal = [["reflex_motivational", "Motivational reflex"], ["reflex_sensitizing", "Sensitizing reflex"]];
   const literal = [["reflex_nociceptive_literal", "Nociceptive reflex (literal)"],
                    ["reflex_thermotactic_literal", "Thermotactic reflex (literal)"]];
   return [
@@ -77,6 +79,14 @@ function study1Tables() {
     "::noindent Reflexes that reverse their *commanded* heading on every trigger, as first specified. " +
     "They oscillate inside heat sources (Section 3.6 of the article). Source: `results/literal_reflex/summary.csv`.",
     metricTable(path.join(ROOT, "results/literal_reflex/summary.csv"), literal, markers),
+    "## S9.4 Minimal Controls (Post Hoc; 30 Seeds)",
+    "::noindent The motivational reflex (thermotactic reflex whose withdrawal is vetoed while energy < 0.2) and the " +
+    "sensitizing reflex (nociceptive reflex plus one bit of state set by harm); see `agents/minimal.py`. " +
+    "Same episode seeds as the baselines. Source: `results/minimal_controls/summary.csv`.",
+    metricTable(path.join(ROOT, "results/minimal_controls/summary.csv"), minimal, [...markers, ...energy]),
+    "## S9.5 Minimal Controls (Post Hoc; 100 Seeds)",
+    "::noindent Source: `results/minimal_controls/seeds100/summary.csv`.",
+    metricTable(path.join(ROOT, "results/minimal_controls/seeds100/summary.csv"), minimal, markers),
   ].join("\n\n");
 }
 

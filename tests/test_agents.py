@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 
-from agents import AGENT_NAMES, ReflexAgent, make_agent
+from agents import AGENT_NAMES, MINIMAL_CONTROL_NAMES, ReflexAgent, make_agent
 from arena.env import OBS_NAMES, HomeostaticArena
 
 I = {name: i for i, name in enumerate(OBS_NAMES)}
@@ -132,6 +132,43 @@ def test_thermal_trigger_logic():
     assert not thermo.withdrawal_triggered(0.0, 34.0)     # rising but below 35 C
     assert not noci.withdrawal_triggered(0.0, 50.0)       # nociceptive ignores ambient
     assert noci.withdrawal_triggered(0.2, 30.0)
+
+
+@pytest.mark.parametrize("name", MINIMAL_CONTROL_NAMES)
+def test_minimal_controls_run_in_the_arena(name):
+    env = HomeostaticArena("tradeoff", seed=0)
+    agent = make_agent(name, seed=0)
+    obs, info = env.reset()
+    for _ in range(100):
+        action = agent.act(obs, info)
+        assert action.shape == (2,) and np.all(np.abs(action) <= 1.0)
+        obs, _, terminated, truncated, info = env.step(action)
+        if terminated or truncated:
+            break
+
+
+def test_motivational_reflex_ignores_heat_only_when_energy_is_critical():
+    agent = make_agent("reflex_motivational", seed=0)
+    agent.act(synthetic_obs(ambient_c=36.0, energy=0.5))
+    agent._energy = 0.5
+    assert agent.withdrawal_triggered(0.0, 37.0)          # thermotactic rule as usual
+    assert agent.withdrawal_triggered(0.9, 50.0)
+    agent._energy = 0.1
+    assert not agent.withdrawal_triggered(0.0, 37.0)      # critical need vetoes withdrawal
+    assert not agent.withdrawal_triggered(0.9, 50.0)
+
+
+def test_sensitizing_reflex_lowers_threshold_after_harm_only():
+    agent = make_agent("reflex_sensitizing", seed=0)
+    agent.prev_ambient_c = 36.0
+    assert not agent.withdrawal_triggered(0.0, 37.0)      # naive: nociceptive rule only
+    assert agent.withdrawal_triggered(0.6, 50.0)          # harmful stimulus sets the latch
+    agent.prev_ambient_c = 36.0
+    assert agent.withdrawal_triggered(0.0, 37.0)          # now withdraws on rising heat
+    agent.prev_ambient_c = 37.0
+    assert not agent.withdrawal_triggered(0.0, 36.5)      # ... but not on falling heat
+    agent.reset()
+    assert not agent.sensitized
 
 
 def test_tumbles_only_when_foraging_and_beacon_falls():
