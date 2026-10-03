@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite it as below."
+title: "Homeostatic Arena: code and data for 'Behavioural Markers of Sentience Are Met by Minimal Mechanisms: Validated and Pre-Registered Tests With Homeostatic Agents'"
+type: software
+authors:
+  - family-names: "Pothineni"
+    given-names: "Subbarao"
+    affiliation: "Independent Researcher, Prosper, Texas, USA"
+    orcid: "https://orcid.org/0009-0004-9267-608X"
+version: "1.0-submission"
+date-released: "2026-10-03"
+license: "MIT"
+repository-code: "https://github.com/subbaraopothineni/homeostatic_arena"
+keywords:
+  - sentience markers
+  - sense of agency
+  - homeostatic reinforcement learning
+  - comparator model
+  - pre-registration
+  - artificial life

@@ -4,3 +4,8 @@ build/embed/
 build/supplementary.expanded.md
 05_code_and_data/*.zip
 05_code_and_data/*.bundle
+# Filled-in submission files: the cover letter contains a postal address
+READY_TO_UPLOAD/
+_original_backup/
+# Submission-form texts and reviewer suggestions stay private
+06_declarations/

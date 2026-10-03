@@ -540,6 +540,12 @@ submission/             journal submission package for Artificial Life (start wi
 requirements-lock.txt   exact package versions that produced all results
 ```
 
+## Licence and citation
+
+Code, data, trained models and documents are released under the MIT licence (see
+[LICENSE](LICENSE)). To cite this repository, use [CITATION.cff](CITATION.cff) (GitHub shows
+a "Cite this repository" button).
+
 ## References
 
 All references were checked by web search on 2026-09-22.
